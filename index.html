@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Confirmar asistencia</title>
+  <style>
+    body {
+      background-color: #ffe6f0;
+      font-family: 'Georgia', serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .contenedor {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      border: 3px solid #f8c6d8;
+      text-align: center;
+      max-width: 400px;
+    }
+    input {
+      padding: 10px;
+      font-size: 16px;
+      width: 80%;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      margin-bottom: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #cc2e72;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="contenedor">
+    <h2>🎀 Confirmación de Asistencia</h2>
+    <p>Ingresa tu código para confirmar</p>
+    <input id="codigoInput" type="text" placeholder="Ej. gomez">
+    <br>
+    <button onclick="confirmar()">Confirmar</button>
+  </div>
+
+  <script>
+    function confirmar() {
+      const codigo = document.getElementById("codigoInput").value.trim().toLowerCase();
+      if (!codigo) {
+        alert("Por favor ingresa tu código.");
+        return;
+      }
+      const url = "https://script.google.com/macros/s/AKfycbxIQ438NTeglj-J_JX8ZfXHlR7Rg040IpoHGDoE5bJre0QbDbLBkfzmWfQIQ1ohcdaW/exec?codigo=" + encodeURIComponent(codigo);
+      window.location.href = url;
+    }
+  </script>
+</body>
+</html>
