@@ -21,14 +21,36 @@
       border: 3px solid #f8c6d8;
       text-align: center;
       max-width: 400px;
+      width: 90%;
     }
     input {
       padding: 10px;
       font-size: 16px;
-      width: 80%;
+      width: 100%;
       border-radius: 10px;
       border: 1px solid #ccc;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
+      box-sizing: border-box;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 150px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      background: white;
+      position: absolute;
+      width: calc(100% - 60px);
+      z-index: 10;
+    }
+    li {
+      padding: 10px;
+      cursor: pointer;
+    }
+    li:hover {
+      background-color: #f0cadd;
     }
     button {
       padding: 10px 20px;
@@ -38,28 +60,74 @@
       border-radius: 10px;
       font-size: 16px;
       cursor: pointer;
+      margin-top: 10px;
+    }
+    .relative {
+      position: relative;
     }
   </style>
 </head>
 <body>
   <div class="contenedor">
     <h2>🎀 Confirmación de Asistencia</h2>
-    <p>Ingresa tu código para confirmar</p>
-    <input id="codigoInput" type="text" placeholder="Ej. gomez">
-    <br>
-    <button onclick="confirmar()">Confirmar</button>
+    <p>Busca tu nombre para confirmar</p>
+    <div class="relative">
+      <input id="nombreInput" type="text" placeholder="Escribe tu nombre">
+      <ul id="sugerencias" hidden></ul>
+    </div>
+    <button id="confirmarBtn" style="display:none;">Confirmar</button>
   </div>
 
   <script>
-    function confirmar() {
-      const codigo = document.getElementById("codigoInput").value.trim().toLowerCase();
-      if (!codigo) {
-        alert("Por favor ingresa tu código.");
-        return;
-      }
-      const url = "https://script.google.com/macros/s/AKfycbXXXXXXXXXXXXXXXXXXXXXXX/exec?codigo=" + encodeURIComponent(codigo);
-      window.location.href = url;
+    const scriptURL = "https://script.google.com/macros/s/AKfycbw_c1Puke-xaaACMZnrOBbJpl16ixgktZmBiNIjpkIHULrXfhb-GAUrMYV4tm69gCZV/exec";
+    let invitados = [];
+
+    function normalizar(str) {
+      return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
     }
+
+    async function cargarInvitados() {
+      const res = await fetch(`${scriptURL}?nombreLista`);
+      invitados = await res.json();
+    }
+
+    function mostrarSugerencias(filtro) {
+      const ul = document.getElementById("sugerencias");
+      ul.innerHTML = "";
+      const texto = normalizar(filtro);
+      if (!texto) return ul.hidden = true;
+
+      const coincidencias = invitados.filter(i =>
+        normalizar(i.nombre).includes(texto)
+      );
+
+      if (coincidencias.length === 0) return ul.hidden = true;
+
+      coincidencias.forEach(inv => {
+        const li = document.createElement("li");
+        li.textContent = inv.nombre;
+        li.onclick = () => seleccionarNombre(inv);
+        ul.appendChild(li);
+      });
+
+      ul.hidden = false;
+    }
+
+    function seleccionarNombre(inv) {
+      document.getElementById("nombreInput").value = inv.nombre;
+      document.getElementById("sugerencias").hidden = true;
+      document.getElementById("confirmarBtn").style.display = "inline-block";
+      document.getElementById("confirmarBtn").onclick = () => {
+        window.location.href = `${scriptURL}?codigo=${encodeURIComponent(inv.codigo)}`;
+      };
+    }
+
+    document.getElementById("nombreInput").addEventListener("input", e => {
+      mostrarSugerencias(e.target.value);
+      document.getElementById("confirmarBtn").style.display = "none";
+    });
+
+    window.onload = cargarInvitados;
   </script>
 </body>
 </html>
