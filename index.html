@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Confirmar asistencia</title>
   <style>
     body {
@@ -22,6 +22,7 @@
       text-align: center;
       max-width: 400px;
       width: 90%;
+      position: relative;
     }
     input {
       padding: 10px;
@@ -42,8 +43,10 @@
       border-radius: 10px;
       background: white;
       position: absolute;
-      width: calc(100% - 60px);
+      width: calc(100% - 62px);
       z-index: 10;
+      left: 31px;
+      top: 115px;
     }
     li {
       padding: 10px;
@@ -62,70 +65,129 @@
       cursor: pointer;
       margin-top: 10px;
     }
-    .relative {
-      position: relative;
-    }
   </style>
 </head>
 <body>
   <div class="contenedor">
     <h2>🎀 Confirmación de Asistencia</h2>
     <p>Busca tu nombre para confirmar</p>
-    <div class="relative">
-      <input id="nombreInput" type="text" placeholder="Escribe tu nombre">
-      <ul id="sugerencias" hidden></ul>
-    </div>
-    <button id="confirmarBtn" style="display:none;">Confirmar</button>
+    <input id="nombreInput" type="text" placeholder="Escribe tu nombre" autocomplete="off" />
+    <ul id="sugerencias" hidden></ul>
+    <button id="confirmarBtn" style="display:none;">Confirmar asistencia</button>
   </div>
 
   <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbw_c1Puke-xaaACMZnrOBbJpl16ixgktZmBiNIjpkIHULrXfhb-GAUrMYV4tm69gCZV/exec";
-    let invitados = [];
+    // --- CONFIGURA ESTO ---
+    const spreadsheetId = "1LKsB3nXQ8NqosmyuoiLTRxUrrQzsXAnf2hVlIxoiYQI";
+    const apiKey = "AIzaSyC916C1gjId46ClbCpxNaLRkPITQVKkF5E";
+    const backendConfirmURL = "https://script.google.com/macros/s/AKfycbwE_e9OUUyM24Y8kQbXa3MqZ8K6JWs_-REgJkdUo_86obTlCrO0GfoEZ2yxGorQXtnE/exec";
 
-    function normalizar(str) {
-      return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    let invitados = [];
+    let seleccionado = null;
+
+    // Normaliza texto para búsqueda insensible a mayúsculas y tildes
+    function normalizar(texto) {
+      return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
     }
 
     async function cargarInvitados() {
-      const res = await fetch(`${scriptURL}?nombreLista`);
-      invitados = await res.json();
+      const range = "Invitados!A2:G"; // Ajusta el rango si tienes más columnas o filas
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data.values) {
+          invitados = data.values.map(row => ({
+            codigo: row[0],
+            nombre: row[1],
+            adultos: row[2],
+            ninos: row[3],
+            mesa: row[5],
+            confirmado: row[6]
+          }));
+        } else {
+          alert("No se pudieron cargar los invitados.");
+          console.error(data);
+        }
+      } catch (e) {
+        alert("Error al cargar la lista de invitados.");
+        console.error(e);
+      }
     }
 
-    function mostrarSugerencias(filtro) {
+    function mostrarSugerencias(texto) {
       const ul = document.getElementById("sugerencias");
       ul.innerHTML = "";
-      const texto = normalizar(filtro);
-      if (!texto) return ul.hidden = true;
+      if (!texto.trim()) {
+        ul.hidden = true;
+        return;
+      }
 
-      const coincidencias = invitados.filter(i =>
-        normalizar(i.nombre).includes(texto)
-      );
+      const textoNorm = normalizar(texto);
+      const coincidencias = invitados.filter(i => normalizar(i.nombre).includes(textoNorm));
 
-      if (coincidencias.length === 0) return ul.hidden = true;
+      if (coincidencias.length === 0) {
+        ul.hidden = true;
+        return;
+      }
 
       coincidencias.forEach(inv => {
         const li = document.createElement("li");
-        li.textContent = inv.nombre;
-        li.onclick = () => seleccionarNombre(inv);
+        li.textContent = inv.nombre + (inv.confirmado === "Sí" ? " ✅ Confirmado" : "");
+        li.onclick = () => seleccionarInvitado(inv);
         ul.appendChild(li);
       });
 
       ul.hidden = false;
     }
 
-    function seleccionarNombre(inv) {
+    function seleccionarInvitado(inv) {
+      seleccionado = inv;
       document.getElementById("nombreInput").value = inv.nombre;
       document.getElementById("sugerencias").hidden = true;
       document.getElementById("confirmarBtn").style.display = "inline-block";
-      document.getElementById("confirmarBtn").onclick = () => {
-        window.location.href = `${scriptURL}?codigo=${encodeURIComponent(inv.codigo)}`;
-      };
+    }
+
+    async function confirmarAsistencia() {
+      if (!seleccionado) {
+        alert("Por favor selecciona un invitado de la lista.");
+        return;
+      }
+
+      if (seleccionado.confirmado === "Sí") {
+        alert("Ya habías confirmado tu asistencia, ¡gracias!");
+        return;
+      }
+
+      const url = `${backendConfirmURL}?codigo=${encodeURIComponent(seleccionado.codigo)}`;
+
+      try {
+        const res = await fetch(url);
+        const html = await res.text();
+
+        // Mostrar respuesta del backend en un modal sencillo
+        const w = window.open("", "Confirmación", "width=400,height=300");
+        w.document.write(html);
+        w.document.close();
+
+        // Actualiza el estado para que no confirme otra vez
+        seleccionado.confirmado = "Sí";
+        document.getElementById("confirmarBtn").style.display = "none";
+      } catch (e) {
+        alert("Error al confirmar asistencia.");
+        console.error(e);
+      }
     }
 
     document.getElementById("nombreInput").addEventListener("input", e => {
       mostrarSugerencias(e.target.value);
       document.getElementById("confirmarBtn").style.display = "none";
+      seleccionado = null;
     });
+
+    document.getElementById("confirmarBtn").addEventListener("click", confirmarAsistencia);
 
     window.onload = cargarInvitados;
   </script>
