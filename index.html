@@ -78,7 +78,7 @@
     // --- CONFIGURA ESTO ---
     const spreadsheetId = "1LKsB3nXQ8NqosmyuoiLTRxUrrQzsXAnf2hVlIxoiYQI";
     const apiKey = "AIzaSyC916C1gjId46ClbCpxNaLRkPITQVKkF5E";
-    const backendConfirmURL = "https://script.google.com/macros/s/AKfycbzSreL3RX8SqS_AyGFPjgVinn2v_3GTf1UTxKtDJc4UCxY2xoJWvMwTJwcippjCpbE_/exec";
+    const backendConfirmURL = "https://script.google.com/macros/s/AKfycbxSOb3uT96PgF3j6SWZxjw436aOBNJOGSy-z9I2zACaiOiB9JiYZ-bTrKPjoja9aLkt/exec";
 
     let invitados = [];
     let seleccionado = null;
@@ -135,7 +135,7 @@
 
       coincidencias.forEach(inv => {
         const li = document.createElement("li");
-        li.textContent = inv.nombre + (inv.confirmado === "Sí" ? " ✅" : "");
+        li.textContent = inv.nombre;
         li.onclick = () => seleccionarInvitado(inv);
         ul.appendChild(li);
       });
