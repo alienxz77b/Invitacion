@@ -135,7 +135,8 @@
 
       coincidencias.forEach(inv => {
         const li = document.createElement("li");
-        li.textContent = inv.nombre + (inv.confirmado === "Sí" ? " ✅ Confirmado" : "");
+        li.textContent = inv.nombre;
+        // li.textContent = inv.nombre + (inv.confirmado === "Sí" ? " ✅ Confirmado" : "");
         li.onclick = () => seleccionarInvitado(inv);
         ul.appendChild(li);
       });
