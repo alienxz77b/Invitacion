@@ -29,6 +29,12 @@
       text-align: center;
       max-width: 400px;
       width: 100%;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
     }
 
     h2 {
@@ -64,11 +70,13 @@
       width: 100%;
       z-index: 10;
       position: relative;
+      animation: fadeIn 0.3s ease;
     }
 
     li {
       padding: 10px;
       cursor: pointer;
+      transition: background-color 0.2s;
     }
 
     li:hover {
@@ -84,7 +92,6 @@
       font-size: 1em;
       cursor: pointer;
       margin-top: 15px;
-      display: none;
       width: 100%;
     }
 
@@ -112,13 +119,12 @@
   <div class="contenedor">
     <h2>🎀 Confirmación de Asistencia</h2>
     <p>Escribe tu nombre para confirmar</p>
-    <input id="nombreInput" type="text" placeholder="" autocomplete="off" />
+    <input id="nombreInput" type="text" placeholder="Tu nombre completo" autocomplete="off" />
     <ul id="sugerencias" hidden></ul>
     <button id="confirmarBtn">Confirmar asistencia</button>
   </div>
 
   <script>
-    // --- CONFIGURA ESTO ---
     const spreadsheetId = "1LKsB3nXQ8NqosmyuoiLTRxUrrQzsXAnf2hVlIxoiYQI";
     const apiKey = "AIzaSyC916C1gjId46ClbCpxNaLRkPITQVKkF5E";
     const backendConfirmURL = "https://script.google.com/macros/s/AKfycbzo1b06NUwZ7lBpWRge76W70vqH4yx4IhH55QAfiuW8kHiqZGsmaKoSg1o2wDs219bD/exec";
@@ -157,56 +163,41 @@
       }
     }
 
-    function mostrarSugerencias(texto) {
+    function confirmarAsistencia() {
+      const input = document.getElementById("nombreInput").value.trim();
       const ul = document.getElementById("sugerencias");
       ul.innerHTML = "";
+      ul.hidden = true;
+      seleccionado = null;
 
-      if (!texto.trim()) {
-        ul.hidden = true;
+      if (!input) {
+        alert("Escribe un nombre para confirmar.");
         return;
       }
 
-      const textoNorm = normalizar(texto);
+      const textoNorm = normalizar(input);
       const coincidencias = invitados.filter(i =>
         normalizar(i.nombre).includes(textoNorm)
       );
 
       if (coincidencias.length === 0) {
-        ul.hidden = true;
-        return;
+        alert("No se encontró ningún nombre. Verifica que esté bien escrito.");
+      } else if (coincidencias.length === 1) {
+        // Una coincidencia: redirigir directamente
+        window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(coincidencias[0].codigo)}`;
+      } else {
+        // Varias coincidencias: mostrar opciones
+        coincidencias.forEach(inv => {
+          const li = document.createElement("li");
+          li.textContent = inv.nombre;
+          li.onclick = () => {
+            window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(inv.codigo)}`;
+          };
+          ul.appendChild(li);
+        });
+        ul.hidden = false;
       }
-
-      coincidencias.forEach(inv => {
-        const li = document.createElement("li");
-        li.textContent = inv.nombre;
-        li.onclick = () => seleccionarInvitado(inv);
-        ul.appendChild(li);
-      });
-
-      ul.hidden = false;
     }
-
-    function seleccionarInvitado(inv) {
-      seleccionado = inv;
-      document.getElementById("nombreInput").value = inv.nombre;
-      document.getElementById("sugerencias").hidden = true;
-      document.getElementById("confirmarBtn").style.display = "block";
-    }
-
-    function confirmarAsistencia() {
-      if (!seleccionado) {
-        alert("Selecciona un invitado válido.");
-        return;
-      }
-
-      window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(seleccionado.codigo)}`;
-    }
-
-    document.getElementById("nombreInput").addEventListener("input", e => {
-      mostrarSugerencias(e.target.value);
-      seleccionado = null;
-      document.getElementById("confirmarBtn").style.display = "none";
-    });
 
     document.getElementById("confirmarBtn").addEventListener("click", confirmarAsistencia);
 
