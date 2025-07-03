@@ -22,7 +22,6 @@
       text-align: center;
       max-width: 400px;
       width: 90%;
-      position: relative;
     }
     input {
       padding: 10px;
@@ -30,23 +29,21 @@
       width: 100%;
       border-radius: 10px;
       border: 1px solid #ccc;
-      margin-bottom: 10px;
+      margin-bottom: 5px;
       box-sizing: border-box;
     }
     ul {
       list-style: none;
       padding: 0;
-      margin: 0;
+      margin-top: 5px;
       max-height: 150px;
       overflow-y: auto;
       border: 1px solid #ccc;
       border-radius: 10px;
       background: white;
-      position: absolute;
-      width: calc(100% - 62px);
+      width: 100%;
+      box-sizing: border-box;
       z-index: 10;
-      left: 31px;
-      top: 115px;
     }
     li {
       padding: 10px;
@@ -63,7 +60,8 @@
       border-radius: 10px;
       font-size: 16px;
       cursor: pointer;
-      margin-top: 10px;
+      margin-top: 15px;
+      display: none;
     }
   </style>
 </head>
@@ -73,7 +71,7 @@
     <p>Busca tu nombre para confirmar</p>
     <input id="nombreInput" type="text" placeholder="Escribe tu nombre" autocomplete="off" />
     <ul id="sugerencias" hidden></ul>
-    <button id="confirmarBtn" style="display:none;">Confirmar asistencia</button>
+    <button id="confirmarBtn">Confirmar asistencia</button>
   </div>
 
   <script>
@@ -85,13 +83,12 @@
     let invitados = [];
     let seleccionado = null;
 
-    // Normaliza texto para búsqueda insensible a mayúsculas y tildes
     function normalizar(texto) {
       return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
     }
 
     async function cargarInvitados() {
-      const range = "Invitados!A2:G"; // Ajusta el rango si tienes más columnas o filas
+      const range = "Invitados!A2:G";
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`;
 
       try {
@@ -108,11 +105,11 @@
             confirmado: row[6]
           }));
         } else {
-          alert("No se pudieron cargar los invitados.");
+          alert("No se pudo cargar la lista.");
           console.error(data);
         }
       } catch (e) {
-        alert("Error al cargar la lista de invitados.");
+        alert("Error al cargar invitados.");
         console.error(e);
       }
     }
@@ -120,13 +117,16 @@
     function mostrarSugerencias(texto) {
       const ul = document.getElementById("sugerencias");
       ul.innerHTML = "";
+
       if (!texto.trim()) {
         ul.hidden = true;
         return;
       }
 
       const textoNorm = normalizar(texto);
-      const coincidencias = invitados.filter(i => normalizar(i.nombre).includes(textoNorm));
+      const coincidencias = invitados.filter(i =>
+        normalizar(i.nombre).includes(textoNorm)
+      );
 
       if (coincidencias.length === 0) {
         ul.hidden = true;
@@ -135,8 +135,7 @@
 
       coincidencias.forEach(inv => {
         const li = document.createElement("li");
-        li.textContent = inv.nombre;
-        // li.textContent = inv.nombre + (inv.confirmado === "Sí" ? " ✅ Confirmado" : "");
+        li.textContent = inv.nombre + (inv.confirmado === "Sí" ? " ✅" : "");
         li.onclick = () => seleccionarInvitado(inv);
         ul.appendChild(li);
       });
@@ -151,41 +150,19 @@
       document.getElementById("confirmarBtn").style.display = "inline-block";
     }
 
-    async function confirmarAsistencia() {
+    function confirmarAsistencia() {
       if (!seleccionado) {
-        alert("Por favor selecciona un invitado de la lista.");
+        alert("Selecciona un invitado válido.");
         return;
       }
 
-      if (seleccionado.confirmado === "Sí") {
-        alert("Ya habías confirmado tu asistencia, ¡gracias!");
-        return;
-      }
-
-      const url = `${backendConfirmURL}?codigo=${encodeURIComponent(seleccionado.codigo)}`;
-
-      try {
-        const res = await fetch(url);
-        const html = await res.text();
-
-        // Mostrar respuesta del backend en un modal sencillo
-        const w = window.open("", "Confirmación", "width=400,height=300");
-        w.document.write(html);
-        w.document.close();
-
-        // Actualiza el estado para que no confirme otra vez
-        seleccionado.confirmado = "Sí";
-        document.getElementById("confirmarBtn").style.display = "none";
-      } catch (e) {
-        alert("Error al confirmar asistencia.");
-        console.error(e);
-      }
+      window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(seleccionado.codigo)}`;
     }
 
     document.getElementById("nombreInput").addEventListener("input", e => {
       mostrarSugerencias(e.target.value);
-      document.getElementById("confirmarBtn").style.display = "none";
       seleccionado = null;
+      document.getElementById("confirmarBtn").style.display = "none";
     });
 
     document.getElementById("confirmarBtn").addEventListener("click", confirmarAsistencia);
