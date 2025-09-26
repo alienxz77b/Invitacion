@@ -130,7 +130,6 @@
     const backendConfirmURL = "https://script.google.com/macros/s/AKfycbzN3TWlE0U_6LVeZ24FbZUF3qTdbr68A4RswUua4EAOiKmDOu9pBAYZcnF8sX7qU-fm/exec";
 
     let invitados = [];
-    let seleccionado = null;
 
     function normalizar(texto) {
       return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -168,7 +167,6 @@
       const ul = document.getElementById("sugerencias");
       ul.innerHTML = "";
       ul.hidden = true;
-      seleccionado = null;
 
       if (!input) {
         alert("Escribe un nombre para confirmar.");
@@ -183,10 +181,10 @@
       if (coincidencias.length === 0) {
         alert("No se encontró ningún nombre. Verifica que esté bien escrito.");
       } else if (coincidencias.length === 1) {
-        // Una coincidencia: redirigir directamente
+        // Redirigir directamente
         window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(coincidencias[0].codigo)}`;
       } else {
-        // Varias coincidencias: mostrar opciones
+        // Mostrar lista de coincidencias
         coincidencias.forEach(inv => {
           const li = document.createElement("li");
           li.textContent = inv.nombre;
@@ -199,7 +197,14 @@
       }
     }
 
+    // Listeners
     document.getElementById("confirmarBtn").addEventListener("click", confirmarAsistencia);
+    document.getElementById("nombreInput").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        confirmarAsistencia();
+      }
+    });
 
     window.onload = cargarInvitados;
   </script>
