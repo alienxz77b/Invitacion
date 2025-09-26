@@ -57,8 +57,10 @@ const backendConfirmURL = "https://script.google.com/macros/s/AKfycbzN3TWlE0U_6L
 
 let invitados = [];
 
-function normalizar(texto){ return texto.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase(); }
-
+function normalizar(texto){
+  if(!texto) return ""; // evita undefined
+  return texto.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+}
 async function cargarInvitados(){
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Invitados!A2:G?key=${apiKey}`;
   try{
@@ -90,7 +92,7 @@ function confirmarAsistencia(){
   if(invitados.length===0){ alert("La lista de invitados aún no se cargó. Espera unos segundos y vuelve a intentarlo."); return; }
 
   const textoNorm = normalizar(input);
-  const coincidencias = invitados.filter(i=>normalizar(i.nombre).includes(textoNorm));
+  const coincidencias = invitados.filter(i => normalizar(i.nombre).includes(textoNorm));
 
   // Mostrar depuración
   if(coincidencias.length>0){
