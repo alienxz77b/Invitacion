@@ -42,6 +42,7 @@
     ul.mostrar { display: block; }
     li { padding: 10px; cursor: pointer; transition: background-color 0.2s; }
     li:hover { background-color: #f0cadd; }
+    li.seleccionado { background-color: #cc2e72; color: white; }
     button { padding: 12px 20px; background-color: #cc2e72; color: white; border: none; border-radius: 10px; font-size: 1em; cursor: pointer; margin-top: 15px; width: 100%; }
     #depuracion { margin-top: 10px; font-size: 0.9em; color: #333; text-align: left; max-height: 150px; overflow-y: auto; border: 1px dashed #cc2e72; padding: 5px; border-radius: 10px; background: #fff0f5; display: none; }
     @media (max-width: 480px) { body { padding: 10px; height: auto; } .contenedor { padding: 25px 15px; } h2 { font-size: 1.3em; } p, input, button { font-size: 0.95em; } }
@@ -54,7 +55,6 @@
     <input id="nombreInput" type="text" placeholder="Tu nombre completo" autocomplete="off" />
     <ul id="sugerencias"></ul>
     <button id="confirmarBtn">Confirmar asistencia</button>
-    <!-- Contenedor de depuración agregado -->
     <div id="depuracion"></div>
   </div>
 
@@ -64,21 +64,19 @@
     const backendConfirmURL = "https://script.google.com/macros/s/AKfycbzN3TWlE0U_6LVeZ24FbZUF3qTdbr68A4RswUua4EAOiKmDOu9pBAYZcnF8sX7qU-fm/exec";
 
     let invitados = [];
-    let seleccionado = null;
+    let seleccionado = null; // invitado seleccionado
 
     function normalizar(texto){
-      if(!texto) return ""; // evita errores con undefined
+      if(!texto) return "";
       return texto.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
     }
 
     async function cargarInvitados() {
       const range = "Invitados!A2:G";
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`;
-
       try {
         const res = await fetch(url);
         const data = await res.json();
-
         if (data.values) {
           invitados = data.values.map(row => ({
             codigo: row[0],
@@ -102,8 +100,10 @@
       const input = document.getElementById("nombreInput")?.value.trim() || "";
       const ul = document.getElementById("sugerencias");
       const dep = document.getElementById("depuracion");
-      if(ul) ul.innerHTML = ""; ul.classList.remove("mostrar");
+
+      if(ul){ ul.innerHTML = ""; ul.classList.remove("mostrar"); }
       if(dep){ dep.innerHTML = ""; dep.style.display = "none"; }
+      seleccionado = null;
 
       if(!input){ alert("Escribe un nombre para confirmar."); return; }
       if(invitados.length===0){ alert("La lista de invitados aún no se cargó. Espera unos segundos y vuelve a intentarlo."); return; }
@@ -111,29 +111,43 @@
       const textoNorm = normalizar(input);
       const coincidencias = invitados.filter(i => normalizar(i.nombre).includes(textoNorm));
 
-      // Mostrar depuración si existe el contenedor
-      if(dep && coincidencias.length>0){
+      // Mostrar depuración
+      /*if(dep && coincidencias.length>0){
         dep.style.display = "block";
         dep.innerHTML = "<b>Invitados encontrados:</b><br>" + coincidencias.map(i=>i.nombre).join("<br>");
-      }
+      }*/
 
-      if(coincidencias.length===0){ alert("No se encontró ningún nombre. Verifica que esté bien escrito."); }
-      else if(coincidencias.length===1){
-        window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(coincidencias[0].codigo)}`;
+      if(coincidencias.length===0){ alert("No se encontró ningún nombre."); return; }
+
+      if(coincidencias.length === 1){
+        // Selección automática si solo hay una coincidencia
+        seleccionado = coincidencias[0];
+        alert("Invitado seleccionado automáticamente: " + seleccionado.nombre);
       } else {
+        // Varias coincidencias: mostrar lista y permitir selección
         coincidencias.forEach(inv=>{
-          if(ul){
-            const li = document.createElement("li");
-            li.textContent = inv.nombre;
-            li.onclick = ()=>{ window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(inv.codigo)}`; };
-            ul.appendChild(li);
-          }
+          const li = document.createElement("li");
+          li.textContent = inv.nombre;
+          li.onclick = ()=>{
+            // quitar selección anterior
+            ul.querySelectorAll("li").forEach(el=>el.classList.remove("seleccionado"));
+            li.classList.add("seleccionado");
+            seleccionado = inv;
+          };
+          ul.appendChild(li);
         });
-        if(ul) ul.classList.add("mostrar");
+        ul.classList.add("mostrar");
       }
     }
 
-    document.getElementById("confirmarBtn")?.addEventListener("click", confirmarAsistencia);
+    document.getElementById("confirmarBtn")?.addEventListener("click", ()=>{
+      if(seleccionado){
+        window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(seleccionado.codigo)}`;
+      } else {
+        confirmarAsistencia(); // buscar coincidencias si no hay seleccionado
+      }
+    });
+
     document.getElementById("nombreInput")?.addEventListener("keydown", function(e){
       if(e.key==="Enter"){ e.preventDefault(); confirmarAsistencia(); }
     });
