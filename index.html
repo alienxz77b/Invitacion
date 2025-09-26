@@ -5,9 +5,39 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Confirmar asistencia</title>
 <style>
-/* ... Mantén tu CSS original ... */
-ul { display: none; /* reemplaza hidden por display */ }
+* { box-sizing: border-box; }
+body {
+  background-color: #ffe6f0;
+  font-family: 'Georgia', serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  padding: 20px;
+}
+.contenedor {
+  background: white;
+  padding: 30px 20px;
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  border: 3px solid #f8c6d8;
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+  animation: fadeIn 0.5s ease;
+}
+@keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+h2 { margin-top: 0; font-size: 1.5em; color: #cc2e72; }
+p { font-size: 1em; color: #5e3d4f; margin-bottom: 20px; }
+input { padding: 12px; font-size: 1em; width: 100%; border-radius: 10px; border: 1px solid #ccc; margin-bottom: 10px; }
+ul { list-style: none; padding: 0; margin-top: 5px; max-height: 150px; overflow-y: auto; border: 1px solid #ccc; border-radius: 10px; background: white; width: 100%; display: none; }
 ul.mostrar { display: block; }
+li { padding: 10px; cursor: pointer; transition: background-color 0.2s; }
+li:hover { background-color: #f0cadd; }
+button { padding: 12px 20px; background-color: #cc2e72; color: white; border: none; border-radius: 10px; font-size: 1em; cursor: pointer; margin-top: 15px; width: 100%; }
+#depuracion { margin-top: 10px; font-size: 0.9em; color: #333; text-align: left; max-height: 150px; overflow-y: auto; border: 1px dashed #cc2e72; padding: 5px; border-radius: 10px; background: #fff0f5; display: none; }
+@media (max-width: 480px) { body { padding: 10px; height: auto; } .contenedor { padding: 25px 15px; } h2 { font-size: 1.3em; } p, input, button { font-size: 0.95em; } }
 </style>
 </head>
 <body>
@@ -17,6 +47,7 @@ ul.mostrar { display: block; }
   <input id="nombreInput" type="text" placeholder="Tu nombre completo" autocomplete="off" />
   <ul id="sugerencias"></ul>
   <button id="confirmarBtn">Confirmar asistencia</button>
+  <div id="depuracion"></div>
 </div>
 
 <script>
@@ -49,14 +80,23 @@ async function cargarInvitados(){
 function confirmarAsistencia(){
   const input = document.getElementById("nombreInput").value.trim();
   const ul = document.getElementById("sugerencias");
+  const dep = document.getElementById("depuracion");
   ul.innerHTML = "";
   ul.classList.remove("mostrar");
+  dep.innerHTML = "";
+  dep.style.display = "none";
 
   if(!input){ alert("Escribe un nombre para confirmar."); return; }
   if(invitados.length===0){ alert("La lista de invitados aún no se cargó. Espera unos segundos y vuelve a intentarlo."); return; }
 
   const textoNorm = normalizar(input);
   const coincidencias = invitados.filter(i=>normalizar(i.nombre).includes(textoNorm));
+
+  // Mostrar depuración
+  if(coincidencias.length>0){
+    dep.style.display = "block";
+    dep.innerHTML = "<b>Invitados encontrados:</b><br>" + coincidencias.map(i=>i.nombre).join("<br>");
+  }
 
   if(coincidencias.length===0){ alert("No se encontró ningún nombre. Verifica que esté bien escrito."); }
   else if(coincidencias.length===1){
