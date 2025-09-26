@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Confirmar asistencia</title>
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       background-color: #ffe6f0;
@@ -66,10 +68,10 @@
       border-radius: 10px;
       background: white;
       width: 100%;
-      display: none;
+      z-index: 10;
+      position: relative;
+      animation: fadeIn 0.3s ease;
     }
-
-    ul.mostrar { display: block; }
 
     li {
       padding: 10px;
@@ -93,25 +95,23 @@
       width: 100%;
     }
 
-    #depuracion {
-      margin-top: 10px;
-      font-size: 0.9em;
-      color: #333;
-      text-align: left;
-      max-height: 150px;
-      overflow-y: auto;
-      border: 1px dashed #cc2e72;
-      padding: 5px;
-      border-radius: 10px;
-      background: #fff0f5;
-      display: none;
-    }
-
     @media (max-width: 480px) {
-      body { padding: 10px; height: auto; }
-      .contenedor { padding: 25px 15px; }
-      h2 { font-size: 1.3em; }
-      p, input, button { font-size: 0.95em; }
+      body {
+        padding: 10px;
+        height: auto;
+      }
+
+      .contenedor {
+        padding: 25px 15px;
+      }
+
+      h2 {
+        font-size: 1.3em;
+      }
+
+      p, input, button {
+        font-size: 0.95em;
+      }
     }
   </style>
 </head>
@@ -120,9 +120,8 @@
     <h2>🎀 Confirmación de Asistencia</h2>
     <p>Escribe tu nombre para confirmar</p>
     <input id="nombreInput" type="text" placeholder="Tu nombre completo" autocomplete="off" />
-    <ul id="sugerencias"></ul>
+    <ul id="sugerencias" hidden></ul>
     <button id="confirmarBtn">Confirmar asistencia</button>
-    <div id="depuracion"></div>
   </div>
 
   <script>
@@ -131,17 +130,21 @@
     const backendConfirmURL = "https://script.google.com/macros/s/AKfycbzN3TWlE0U_6LVeZ24FbZUF3qTdbr68A4RswUua4EAOiKmDOu9pBAYZcnF8sX7qU-fm/exec";
 
     let invitados = [];
+    let seleccionado = null;
 
-    function normalizar(texto) {
-      if (!texto) return ""; // evita errores con undefined
-      return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-    }
+function normalizar(texto){
+  if(!texto) return ""; // evita undefined
+  return texto.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+}
 
     async function cargarInvitados() {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Invitados!A2:G?key=${apiKey}`;
+      const range = "Invitados!A2:G";
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`;
+
       try {
         const res = await fetch(url);
         const data = await res.json();
+
         if (data.values) {
           invitados = data.values.map(row => ({
             codigo: row[0],
@@ -161,46 +164,43 @@
       }
     }
 
-    function confirmarAsistencia() {
-      const input = document.getElementById("nombreInput").value.trim();
-      const ul = document.getElementById("sugerencias");
-      const dep = document.getElementById("depuracion");
-      ul.innerHTML = "";
-      ul.classList.remove("mostrar");
-      dep.innerHTML = "";
-      dep.style.display = "none";
+function confirmarAsistencia(){
+  const input = document.getElementById("nombreInput").value.trim();
+  const ul = document.getElementById("sugerencias");
+  const dep = document.getElementById("depuracion");
+  ul.innerHTML = "";
+  ul.classList.remove("mostrar");
+  dep.innerHTML = "";
+  dep.style.display = "none";
 
-      if (!input) { alert("Escribe un nombre para confirmar."); return; }
-      if (invitados.length === 0) { alert("La lista de invitados aún no se cargó. Espera unos segundos y vuelve a intentarlo."); return; }
+  if(!input){ alert("Escribe un nombre para confirmar."); return; }
+  if(invitados.length===0){ alert("La lista de invitados aún no se cargó. Espera unos segundos y vuelve a intentarlo."); return; }
 
-      const textoNorm = normalizar(input);
-      const coincidencias = invitados.filter(i => normalizar(i.nombre).includes(textoNorm));
+  const textoNorm = normalizar(input);
+  const coincidencias = invitados.filter(i => normalizar(i.nombre).includes(textoNorm));
 
-      // Mostrar depuración
-      if (coincidencias.length > 0) {
-        dep.style.display = "block";
-        dep.innerHTML = "<b>Invitados encontrados:</b><br>" + coincidencias.map(i => i.nombre).join("<br>");
-      }
+  // Mostrar depuración
+  if(coincidencias.length>0){
+    dep.style.display = "block";
+    dep.innerHTML = "<b>Invitados encontrados:</b><br>" + coincidencias.map(i=>i.nombre).join("<br>");
+  }
 
-      if (coincidencias.length === 0) {
-        alert("No se encontró ningún nombre. Verifica que esté bien escrito.");
-      } else if (coincidencias.length === 1) {
-        window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(coincidencias[0].codigo)}`;
-      } else {
-        coincidencias.forEach(inv => {
-          const li = document.createElement("li");
-          li.textContent = inv.nombre;
-          li.onclick = () => { window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(inv.codigo)}`; };
-          ul.appendChild(li);
-        });
-        ul.classList.add("mostrar");
-      }
-    }
+  if(coincidencias.length===0){ alert("No se encontró ningún nombre. Verifica que esté bien escrito."); }
+  else if(coincidencias.length===1){
+    window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(coincidencias[0].codigo)}`;
+  } else {
+    coincidencias.forEach(inv=>{
+      const li = document.createElement("li");
+      li.textContent = inv.nombre;
+      li.onclick = ()=>{ window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(inv.codigo)}`; };
+      ul.appendChild(li);
+    });
+    ul.classList.add("mostrar");
+  }
+}
+
 
     document.getElementById("confirmarBtn").addEventListener("click", confirmarAsistencia);
-    document.getElementById("nombreInput").addEventListener("keydown", function (e) {
-      if (e.key === "Enter") { e.preventDefault(); confirmarAsistencia(); }
-    });
 
     window.onload = cargarInvitados;
   </script>
