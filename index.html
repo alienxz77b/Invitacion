@@ -1,212 +1,83 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Confirmar asistencia</title>
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      background-color: #ffe6f0;
-      font-family: 'Georgia', serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      padding: 20px;
-    }
-
-    .contenedor {
-      background: white;
-      padding: 30px 20px;
-      border-radius: 20px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-      border: 3px solid #f8c6d8;
-      text-align: center;
-      max-width: 400px;
-      width: 100%;
-      animation: fadeIn 0.5s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
-    }
-
-    h2 {
-      margin-top: 0;
-      font-size: 1.5em;
-      color: #cc2e72;
-    }
-
-    p {
-      font-size: 1em;
-      color: #5e3d4f;
-      margin-bottom: 20px;
-    }
-
-    input {
-      padding: 12px;
-      font-size: 1em;
-      width: 100%;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      margin-bottom: 10px;
-    }
-
-    ul {
-      list-style: none;
-      padding: 0;
-      margin-top: 5px;
-      max-height: 150px;
-      overflow-y: auto;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      background: white;
-      width: 100%;
-      z-index: 10;
-      position: relative;
-      animation: fadeIn 0.3s ease;
-    }
-
-    li {
-      padding: 10px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-
-    li:hover {
-      background-color: #f0cadd;
-    }
-
-    button {
-      padding: 12px 20px;
-      background-color: #cc2e72;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 1em;
-      cursor: pointer;
-      margin-top: 15px;
-      width: 100%;
-    }
-
-    @media (max-width: 480px) {
-      body {
-        padding: 10px;
-        height: auto;
-      }
-
-      .contenedor {
-        padding: 25px 15px;
-      }
-
-      h2 {
-        font-size: 1.3em;
-      }
-
-      p, input, button {
-        font-size: 0.95em;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confirmar asistencia</title>
+<style>
+/* ... Mantén tu CSS original ... */
+ul { display: none; /* reemplaza hidden por display */ }
+ul.mostrar { display: block; }
+</style>
 </head>
 <body>
-  <div class="contenedor">
-    <h2>🎀 Confirmación de Asistencia</h2>
-    <p>Escribe tu nombre para confirmar</p>
-    <input id="nombreInput" type="text" placeholder="Tu nombre completo" autocomplete="off" />
-    <ul id="sugerencias" hidden></ul>
-    <button id="confirmarBtn">Confirmar asistencia</button>
-  </div>
+<div class="contenedor">
+  <h2>🎀 Confirmación de Asistencia</h2>
+  <p>Escribe tu nombre para confirmar</p>
+  <input id="nombreInput" type="text" placeholder="Tu nombre completo" autocomplete="off" />
+  <ul id="sugerencias"></ul>
+  <button id="confirmarBtn">Confirmar asistencia</button>
+</div>
 
-  <script>
-    const spreadsheetId = "1LKsB3nXQ8NqosmyuoiLTRxUrrQzsXAnf2hVlIxoiYQI";
-    const apiKey = "AIzaSyC916C1gjId46ClbCpxNaLRkPITQVKkF5E";
-    const backendConfirmURL = "https://script.google.com/macros/s/AKfycbzN3TWlE0U_6LVeZ24FbZUF3qTdbr68A4RswUua4EAOiKmDOu9pBAYZcnF8sX7qU-fm/exec";
+<script>
+const spreadsheetId = "1LKsB3nXQ8NqosmyuoiLTRxUrrQzsXAnf2hVlIxoiYQI";
+const apiKey = "AIzaSyC916C1gjId46ClbCpxNaLRkPITQVKkF5E";
+const backendConfirmURL = "https://script.google.com/macros/s/AKfycbzN3TWlE0U_6LVeZ24FbZUF3qTdbr68A4RswUua4EAOiKmDOu9pBAYZcnF8sX7qU-fm/exec";
 
-    let invitados = [];
+let invitados = [];
 
-    function normalizar(texto) {
-      return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-    }
+function normalizar(texto){ return texto.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase(); }
 
-    async function cargarInvitados() {
-      const range = "Invitados!A2:G";
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`;
+async function cargarInvitados(){
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Invitados!A2:G?key=${apiKey}`;
+  try{
+    const res = await fetch(url);
+    const data = await res.json();
+    if(data.values){
+      invitados = data.values.map(row=>({
+        codigo: row[0],
+        nombre: row[1],
+        adultos: row[2],
+        ninos: row[3],
+        mesa: row[5],
+        confirmado: row[6]
+      }));
+    } else { alert("No se pudo cargar la lista."); console.error(data); }
+  } catch(e){ alert("Error al cargar invitados."); console.error(e); }
+}
 
-      try {
-        const res = await fetch(url);
-        const data = await res.json();
+function confirmarAsistencia(){
+  const input = document.getElementById("nombreInput").value.trim();
+  const ul = document.getElementById("sugerencias");
+  ul.innerHTML = "";
+  ul.classList.remove("mostrar");
 
-        if (data.values) {
-          invitados = data.values.map(row => ({
-            codigo: row[0],
-            nombre: row[1],
-            adultos: row[2],
-            ninos: row[3],
-            mesa: row[5],
-            confirmado: row[6]
-          }));
-        } else {
-          alert("No se pudo cargar la lista.");
-          console.error(data);
-        }
-      } catch (e) {
-        alert("Error al cargar invitados.");
-        console.error(e);
-      }
-    }
+  if(!input){ alert("Escribe un nombre para confirmar."); return; }
+  if(invitados.length===0){ alert("La lista de invitados aún no se cargó. Espera unos segundos y vuelve a intentarlo."); return; }
 
-    function confirmarAsistencia() {
-      const input = document.getElementById("nombreInput").value.trim();
-      const ul = document.getElementById("sugerencias");
-      ul.innerHTML = "";
-      ul.hidden = true;
+  const textoNorm = normalizar(input);
+  const coincidencias = invitados.filter(i=>normalizar(i.nombre).includes(textoNorm));
 
-      if (!input) {
-        alert("Escribe un nombre para confirmar.");
-        return;
-      }
-
-      const textoNorm = normalizar(input);
-      const coincidencias = invitados.filter(i =>
-        normalizar(i.nombre).includes(textoNorm)
-      );
-
-      if (coincidencias.length === 0) {
-        alert("No se encontró ningún nombre. Verifica que esté bien escrito.");
-      } else if (coincidencias.length === 1) {
-        // Redirigir directamente
-        window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(coincidencias[0].codigo)}`;
-      } else {
-        // Mostrar lista de coincidencias
-        coincidencias.forEach(inv => {
-          const li = document.createElement("li");
-          li.textContent = inv.nombre;
-          li.onclick = () => {
-            window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(inv.codigo)}`;
-          };
-          ul.appendChild(li);
-        });
-        ul.hidden = false;
-      }
-    }
-
-    // Listeners
-    document.getElementById("confirmarBtn").addEventListener("click", confirmarAsistencia);
-    document.getElementById("nombreInput").addEventListener("keydown", function (e) {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        confirmarAsistencia();
-      }
+  if(coincidencias.length===0){ alert("No se encontró ningún nombre. Verifica que esté bien escrito."); }
+  else if(coincidencias.length===1){
+    window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(coincidencias[0].codigo)}`;
+  } else {
+    coincidencias.forEach(inv=>{
+      const li = document.createElement("li");
+      li.textContent = inv.nombre;
+      li.onclick = ()=>{ window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(inv.codigo)}`; };
+      ul.appendChild(li);
     });
+    ul.classList.add("mostrar");
+  }
+}
 
-    window.onload = cargarInvitados;
-  </script>
+document.getElementById("confirmarBtn").addEventListener("click", confirmarAsistencia);
+document.getElementById("nombreInput").addEventListener("keydown", function(e){
+  if(e.key==="Enter"){ e.preventDefault(); confirmarAsistencia(); }
+});
+
+window.onload = cargarInvitados;
+</script>
 </body>
 </html>
