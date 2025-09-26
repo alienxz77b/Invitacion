@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Confirmar asistencia</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       background-color: #ffe6f0;
@@ -37,82 +35,16 @@
       to { opacity: 1; transform: scale(1); }
     }
 
-    h2 {
-      margin-top: 0;
-      font-size: 1.5em;
-      color: #cc2e72;
-    }
-
-    p {
-      font-size: 1em;
-      color: #5e3d4f;
-      margin-bottom: 20px;
-    }
-
-    input {
-      padding: 12px;
-      font-size: 1em;
-      width: 100%;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      margin-bottom: 10px;
-    }
-
-    ul {
-      list-style: none;
-      padding: 0;
-      margin-top: 5px;
-      max-height: 150px;
-      overflow-y: auto;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      background: white;
-      width: 100%;
-      z-index: 10;
-      position: relative;
-      animation: fadeIn 0.3s ease;
-    }
-
-    li {
-      padding: 10px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-
-    li:hover {
-      background-color: #f0cadd;
-    }
-
-    button {
-      padding: 12px 20px;
-      background-color: #cc2e72;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 1em;
-      cursor: pointer;
-      margin-top: 15px;
-      width: 100%;
-    }
-
-    @media (max-width: 480px) {
-      body {
-        padding: 10px;
-        height: auto;
-      }
-
-      .contenedor {
-        padding: 25px 15px;
-      }
-
-      h2 {
-        font-size: 1.3em;
-      }
-
-      p, input, button {
-        font-size: 0.95em;
-      }
-    }
+    h2 { margin-top: 0; font-size: 1.5em; color: #cc2e72; }
+    p { font-size: 1em; color: #5e3d4f; margin-bottom: 20px; }
+    input { padding: 12px; font-size: 1em; width: 100%; border-radius: 10px; border: 1px solid #ccc; margin-bottom: 10px; }
+    ul { list-style: none; padding: 0; margin-top: 5px; max-height: 150px; overflow-y: auto; border: 1px solid #ccc; border-radius: 10px; background: white; width: 100%; display: none; }
+    ul.mostrar { display: block; }
+    li { padding: 10px; cursor: pointer; transition: background-color 0.2s; }
+    li:hover { background-color: #f0cadd; }
+    button { padding: 12px 20px; background-color: #cc2e72; color: white; border: none; border-radius: 10px; font-size: 1em; cursor: pointer; margin-top: 15px; width: 100%; }
+    #depuracion { margin-top: 10px; font-size: 0.9em; color: #333; text-align: left; max-height: 150px; overflow-y: auto; border: 1px dashed #cc2e72; padding: 5px; border-radius: 10px; background: #fff0f5; display: none; }
+    @media (max-width: 480px) { body { padding: 10px; height: auto; } .contenedor { padding: 25px 15px; } h2 { font-size: 1.3em; } p, input, button { font-size: 0.95em; } }
   </style>
 </head>
 <body>
@@ -120,8 +52,10 @@
     <h2>🎀 Confirmación de Asistencia</h2>
     <p>Escribe tu nombre para confirmar</p>
     <input id="nombreInput" type="text" placeholder="Tu nombre completo" autocomplete="off" />
-    <ul id="sugerencias" hidden></ul>
+    <ul id="sugerencias"></ul>
     <button id="confirmarBtn">Confirmar asistencia</button>
+    <!-- Contenedor de depuración agregado -->
+    <div id="depuracion"></div>
   </div>
 
   <script>
@@ -132,10 +66,10 @@
     let invitados = [];
     let seleccionado = null;
 
-function normalizar(texto){
-  if(!texto) return ""; // evita undefined
-  return texto.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
-}
+    function normalizar(texto){
+      if(!texto) return ""; // evita errores con undefined
+      return texto.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+    }
 
     async function cargarInvitados() {
       const range = "Invitados!A2:G";
@@ -164,43 +98,45 @@ function normalizar(texto){
       }
     }
 
-function confirmarAsistencia(){
-  const input = document.getElementById("nombreInput").value.trim();
-  const ul = document.getElementById("sugerencias");
-  const dep = document.getElementById("depuracion");
-  ul.innerHTML = "";
-  ul.classList.remove("mostrar");
-  dep.innerHTML = "";
-  dep.style.display = "none";
+    function confirmarAsistencia(){
+      const input = document.getElementById("nombreInput")?.value.trim() || "";
+      const ul = document.getElementById("sugerencias");
+      const dep = document.getElementById("depuracion");
+      if(ul) ul.innerHTML = ""; ul.classList.remove("mostrar");
+      if(dep){ dep.innerHTML = ""; dep.style.display = "none"; }
 
-  if(!input){ alert("Escribe un nombre para confirmar."); return; }
-  if(invitados.length===0){ alert("La lista de invitados aún no se cargó. Espera unos segundos y vuelve a intentarlo."); return; }
+      if(!input){ alert("Escribe un nombre para confirmar."); return; }
+      if(invitados.length===0){ alert("La lista de invitados aún no se cargó. Espera unos segundos y vuelve a intentarlo."); return; }
 
-  const textoNorm = normalizar(input);
-  const coincidencias = invitados.filter(i => normalizar(i.nombre).includes(textoNorm));
+      const textoNorm = normalizar(input);
+      const coincidencias = invitados.filter(i => normalizar(i.nombre).includes(textoNorm));
 
-  // Mostrar depuración
-  if(coincidencias.length>0){
-    dep.style.display = "block";
-    dep.innerHTML = "<b>Invitados encontrados:</b><br>" + coincidencias.map(i=>i.nombre).join("<br>");
-  }
+      // Mostrar depuración si existe el contenedor
+      if(dep && coincidencias.length>0){
+        dep.style.display = "block";
+        dep.innerHTML = "<b>Invitados encontrados:</b><br>" + coincidencias.map(i=>i.nombre).join("<br>");
+      }
 
-  if(coincidencias.length===0){ alert("No se encontró ningún nombre. Verifica que esté bien escrito."); }
-  else if(coincidencias.length===1){
-    window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(coincidencias[0].codigo)}`;
-  } else {
-    coincidencias.forEach(inv=>{
-      const li = document.createElement("li");
-      li.textContent = inv.nombre;
-      li.onclick = ()=>{ window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(inv.codigo)}`; };
-      ul.appendChild(li);
+      if(coincidencias.length===0){ alert("No se encontró ningún nombre. Verifica que esté bien escrito."); }
+      else if(coincidencias.length===1){
+        window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(coincidencias[0].codigo)}`;
+      } else {
+        coincidencias.forEach(inv=>{
+          if(ul){
+            const li = document.createElement("li");
+            li.textContent = inv.nombre;
+            li.onclick = ()=>{ window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(inv.codigo)}`; };
+            ul.appendChild(li);
+          }
+        });
+        if(ul) ul.classList.add("mostrar");
+      }
+    }
+
+    document.getElementById("confirmarBtn")?.addEventListener("click", confirmarAsistencia);
+    document.getElementById("nombreInput")?.addEventListener("keydown", function(e){
+      if(e.key==="Enter"){ e.preventDefault(); confirmarAsistencia(); }
     });
-    ul.classList.add("mostrar");
-  }
-}
-
-
-    document.getElementById("confirmarBtn").addEventListener("click", confirmarAsistencia);
 
     window.onload = cargarInvitados;
   </script>
