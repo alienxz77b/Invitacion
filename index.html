@@ -6,18 +6,17 @@
   <title>Confirmar asistencia</title>
   <style>
     * { box-sizing: border-box; }
-
+    html,body { height: 100%; }
     body {
       background-color: #ffe6f0;
-      font-family: 'Georgia', serif;
+      font-family: Georgia, serif;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0;
       padding: 20px;
     }
-
     .contenedor {
       background: white;
       padding: 30px 20px;
@@ -27,44 +26,59 @@
       text-align: center;
       max-width: 400px;
       width: 100%;
-      animation: fadeIn 0.5s ease;
+      animation: fadeIn 0.35s ease;
     }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
+    @keyframes fadeIn { from { opacity:0; transform:scale(.98)} to {opacity:1; transform:none} }
+    h2 { margin-top:0; font-size:1.5em; color:#cc2e72; }
+    p { color:#5e3d4f; margin-bottom:8px; }
+    .campo { position: relative; }
+    input {
+      padding:12px; font-size:1em; width:100%; border-radius:10px; border:1px solid #ccc; margin-bottom:10px;
     }
-
-    h2 { margin-top: 0; font-size: 1.5em; color: #cc2e72; }
-    p { font-size: 1em; color: #5e3d4f; margin-bottom: 20px; }
-    input { padding: 12px; font-size: 1em; width: 100%; border-radius: 10px; border: 1px solid #ccc; margin-bottom: 10px; }
-    ul { list-style: none; padding: 0; margin-top: 5px; max-height: 150px; overflow-y: auto; border: 1px solid #ccc; border-radius: 10px; background: white; width: 100%; display: none; }
-    ul.mostrar { display: block; }
-    li { padding: 10px; cursor: pointer; transition: background-color 0.2s; }
-    li:hover { background-color: #f0cadd; }
-    li.seleccionado { background-color: #cc2e72; color: white; }
-    button { padding: 12px 20px; background-color: #cc2e72; color: white; border: none; border-radius: 10px; font-size: 1em; cursor: pointer; margin-top: 15px; width: 100%; }
-    #depuracion { margin-top: 10px; font-size: 0.9em; color: #333; text-align: left; max-height: 150px; overflow-y: auto; border: 1px dashed #cc2e72; padding: 5px; border-radius: 10px; background: #fff0f5; display: none; }
-    @media (max-width: 480px) { body { padding: 10px; height: auto; } .contenedor { padding: 25px 15px; } h2 { font-size: 1.3em; } p, input, button { font-size: 0.95em; } }
+    input:focus { outline:3px solid rgba(204,46,114,0.18); }
+    ul { list-style:none; padding:0; margin:5px 0 0; max-height:180px; overflow-y:auto; border:1px solid #ccc; border-radius:10px; background: white; display:none; }
+    ul.mostrar { display:block; }
+    li { padding:10px; cursor:pointer; transition:background-color .15s; }
+    li:hover, li:focus { background-color: #f0cadd; outline:none; }
+    li.seleccionado { background-color:#cc2e72; color:white; }
+    button { padding:12px 20px; background:#cc2e72; color:white; border:none; border-radius:10px; font-size:1em; cursor:pointer; margin-top:15px; width:100%; }
+    button[disabled] { opacity:.6; cursor:not-allowed; }
+    #infoSeleccion { text-align:left; font-size:0.95em; color:#5e3d4f; margin-top:8px; display:none; }
+    @media (max-width:480px) {
+      body { padding:10px; align-items:flex-start; }
+      .contenedor { padding:20px; margin-top:20px; }
+    }
   </style>
 </head>
 <body>
-  <div class="contenedor">
-    <h2>🎀 Confirmación de Asistencia</h2>
+  <div class="contenedor" role="region" aria-labelledby="titulo">
+    <h2 id="titulo">🎀 Confirmación de Asistencia</h2>
     <p>Escribe tu nombre para confirmar</p>
-    <input id="nombreInput" type="text" placeholder="Tu nombre completo" autocomplete="off" />
-    <ul id="sugerencias"></ul>
-    <button id="confirmarBtn">Confirmar asistencia</button>
-    <div id="depuracion"></div>
+
+    <div class="campo">
+      <label for="nombreInput" class="sr-only">Nombre completo</label>
+      <input id="nombreInput" type="text" placeholder="Tu nombre completo" autocomplete="off" aria-label="Nombre completo" />
+      <ul id="sugerencias" role="listbox" aria-expanded="false"></ul>
+    </div>
+
+    <button id="confirmarBtn" type="button" disabled>Cargando lista…</button>
+    <div id="infoSeleccion" aria-live="polite"></div>
   </div>
 
   <script>
+    // Tus datos originales (no se tocan)
     const spreadsheetId = "1LKsB3nXQ8NqosmyuoiLTRxUrrQzsXAnf2hVlIxoiYQI";
     const apiKey = "AIzaSyC916C1gjId46ClbCpxNaLRkPITQVKkF5E";
     const backendConfirmURL = "https://script.google.com/macros/s/AKfycbzN3TWlE0U_6LVeZ24FbZUF3qTdbr68A4RswUua4EAOiKmDOu9pBAYZcnF8sX7qU-fm/exec";
 
     let invitados = [];
-    let seleccionado = null; // invitado seleccionado
+    let seleccionado = null;
+    let currentSuggestions = [];
+
+    const inputEl = document.getElementById("nombreInput");
+    const ulEl = document.getElementById("sugerencias");
+    const btnEl = document.getElementById("confirmarBtn");
+    const infoEl = document.getElementById("infoSeleccion");
 
     function normalizar(texto){
       if(!texto) return "";
@@ -76,6 +90,7 @@
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`;
       try {
         const res = await fetch(url);
+        if(!res.ok) throw new Error("Error HTTP "+res.status);
         const data = await res.json();
         if (data.values) {
           invitados = data.values.map(row => ({
@@ -86,9 +101,10 @@
             mesa: row[5],
             confirmado: row[6]
           }));
+          btnEl.disabled = false;
+          btnEl.textContent = "Confirmar asistencia";
         } else {
           alert("No se pudo cargar la lista.");
-          console.error(data);
         }
       } catch (e) {
         alert("Error al cargar invitados.");
@@ -96,62 +112,54 @@
       }
     }
 
-    function confirmarAsistencia(){
-      const input = document.getElementById("nombreInput")?.value.trim() || "";
-      const ul = document.getElementById("sugerencias");
-      const dep = document.getElementById("depuracion");
-
-      if(ul){ ul.innerHTML = ""; ul.classList.remove("mostrar"); }
-      if(dep){ dep.innerHTML = ""; dep.style.display = "none"; }
-      seleccionado = null;
-
-      if(!input){ alert("Escribe un nombre para confirmar."); return; }
-      if(invitados.length===0){ alert("La lista de invitados aún no se cargó. Espera unos segundos y vuelve a intentarlo."); return; }
-
-      const textoNorm = normalizar(input);
-      const coincidencias = invitados.filter(i => normalizar(i.nombre).includes(textoNorm));
-
-      // Mostrar depuración
-      /*if(dep && coincidencias.length>0){
-        dep.style.display = "block";
-        dep.innerHTML = "<b>Invitados encontrados:</b><br>" + coincidencias.map(i=>i.nombre).join("<br>");
-      }*/
-
-      if(coincidencias.length===0){ alert("No se encontró ningún nombre."); return; }
-
-      if(coincidencias.length === 1){
-        // Selección automática si solo hay una coincidencia
-        seleccionado = coincidencias[0];
-        alert("Invitado seleccionado automáticamente: " + seleccionado.nombre);
-      } else {
-        // Varias coincidencias: mostrar lista y permitir selección
-        coincidencias.forEach(inv=>{
-          const li = document.createElement("li");
-          li.textContent = inv.nombre;
-          li.onclick = ()=>{
-            // quitar selección anterior
-            ul.querySelectorAll("li").forEach(el=>el.classList.remove("seleccionado"));
-            li.classList.add("seleccionado");
-            seleccionado = inv;
-          };
-          ul.appendChild(li);
-        });
-        ul.classList.add("mostrar");
-      }
+    function mostrarInfo(inv){
+      if(!inv){ infoEl.style.display="none"; infoEl.textContent=""; return; }
+      infoEl.style.display="block";
+      infoEl.innerHTML = `<strong>${inv.nombre}</strong><br>Mesa: ${inv.mesa||"-"} • Adultos: ${inv.adultos||"-"} • Niños: ${inv.ninos||"-"}`;
     }
 
-    document.getElementById("confirmarBtn")?.addEventListener("click", ()=>{
-      if(seleccionado){
-        window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(seleccionado.codigo)}`;
-      } else {
-        confirmarAsistencia(); // buscar coincidencias si no hay seleccionado
+    function renderSuggestions(lista){
+      ulEl.innerHTML = "";
+      currentSuggestions = lista;
+      if(lista.length===0){ ulEl.classList.remove("mostrar"); return; }
+      if(lista.length===1){
+        seleccionado = lista[0];
+        inputEl.value = seleccionado.nombre;
+        mostrarInfo(seleccionado);
+        ulEl.classList.remove("mostrar");
+        return;
       }
-    });
+      lista.forEach((inv, idx)=>{
+        const li=document.createElement("li");
+        li.role="option";
+        li.textContent=inv.nombre;
+        li.onclick=()=>{ seleccionado=inv; inputEl.value=inv.nombre; mostrarInfo(inv); ulEl.classList.remove("mostrar"); };
+        ulEl.appendChild(li);
+      });
+      ulEl.classList.add("mostrar");
+    }
 
-    document.getElementById("nombreInput")?.addEventListener("keydown", function(e){
+    function confirmarAsistencia(){
+      if(seleccionado){
+        if(confirm(`Confirmar asistencia de ${seleccionado.nombre}?`)){
+          window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(seleccionado.codigo)}`;
+        }
+        return;
+      }
+      const q=inputEl.value.trim();
+      if(!q){ alert("Escribe un nombre para confirmar."); return; }
+      const matches = invitados.filter(i=>normalizar(i.nombre).includes(normalizar(q)));
+      if(matches.length===0){ alert("No se encontró ningún nombre."); return; }
+      renderSuggestions(matches);
+    }
+
+    // Eventos
+    btnEl.addEventListener("click", confirmarAsistencia);
+    inputEl.addEventListener("keydown", e=>{
       if(e.key==="Enter"){ e.preventDefault(); confirmarAsistencia(); }
     });
 
+    // Cargar lista
     window.onload = cargarInvitados;
   </script>
 </body>
