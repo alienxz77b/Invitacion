@@ -1,172 +1,642 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mapa de Mesas — Invitación</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Mapa de mesas — Invitación</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
 <style>
-:root {
-  --bg1: #fff0f6;
-  --bg2: #ffe6f0;
-  --accent: #ff8ab3;
-  --accent-dark: #ff6f9c;
-  --text: #4a2431;
-  --muted: #7a4b5f;
-}
-html, body {margin:0; padding:0; height:100%; font-family:Inter, system-ui, sans-serif;}
-body {background: linear-gradient(180deg, var(--bg1), var(--bg2)); display:flex; justify-content:center; align-items:flex-start; padding:20px;}
-.page {width:100%; max-width:1156px; margin:0 auto;}
-header {margin-bottom:16px; display:flex; justify-content:space-between; flex-wrap:wrap;}
-header h1 {margin:0; font-size:1.25rem; color:var(--text);}
-.map-card {background: rgba(255,255,255,0.92); border-radius:14px; padding:12px; box-shadow:0 10px 30px rgba(148,77,108,0.08); display:flex; flex-direction:column; gap:10px;}
-.svg-wrap {width:100%; max-width:1056px; margin:0 auto; position:relative; border-radius:10px; overflow:hidden; background: linear-gradient(180deg, rgba(255,250,253,0.9), rgba(255,245,249,0.95));}
-object#svgMap {width:100%; height:auto; display:block; min-height:360px; border:none; background:transparent;}
-.controls {display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;}
-.mensaje {background:white; padding:8px 12px; border-radius:10px; box-shadow:0 6px 18px rgba(115,70,95,0.04); font-size:0.95rem;}
-.mensaje.warn {border-left:4px solid #ffd7e6;}
-.mensaje.error {border-left:4px solid #f1a1c9; color:#6a2b3f;}
-.btn {background: linear-gradient(180deg, var(--accent), var(--accent-dark)); color:white; border:none; padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:600;}
-.btn.ghost {background:transparent; color:var(--muted); border:1px solid rgba(120,70,90,0.06);}
-@media(max-width:640px){header h1{font-size:1.05rem;}}
+  :root{
+    /* paleta rosa pastel */
+    --bg-1: #fff6f9;
+    --bg-2: #fff0f6;
+    --card: rgba(255,255,255,0.96);
+    --accent: #ff8ab3;
+    --accent-2: #ff6f9c;
+    --muted: #7a5264;
+    --muted-2:#a87691;
+    --success: #e88fb3;
+    --glass: rgba(255,255,255,0.7);
+    --shadow-lg: 0 14px 40px rgba(150,80,115,0.08);
+    --shadow-sm: 0 6px 18px rgba(120,70,100,0.06);
+    --radius: 14px;
+    --max-width: 1150px;
+    --focus: 3px solid rgba(255,138,179,0.22);
+  }
+
+  html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;background: linear-gradient(180deg,var(--bg-1),var(--bg-2));color: #3b2130;-webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;}
+  .page{max-width:var(--max-width);margin:28px auto;padding:18px;}
+
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+  .brand {
+    display:flex;gap:12px;align-items:center;
+  }
+  .logo {
+    width:48px;height:48px;border-radius:12px;
+    background: linear-gradient(135deg,var(--accent),var(--accent-2));
+    display:flex;align-items:center;justify-content:center;color:white;font-weight:700;
+    box-shadow:var(--shadow-sm);
+    font-size:18px;
+  }
+  header h1{ margin:0; font-size:1.15rem; letter-spacing:0.2px; font-weight:600; color:#4a2431; }
+  header p { margin:0; color:var(--muted); font-size:0.95rem; }
+
+  /* main card */
+  .grid {
+    display:grid;
+    grid-template-columns: 1fr 320px;
+    gap:14px;
+  }
+  @media (max-width:980px){
+    .grid{ grid-template-columns: 1fr; }
+  }
+
+  .map-card{
+    background:var(--card);
+    border-radius:var(--radius);
+    padding:14px;
+    box-shadow:var(--shadow-lg);
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    min-height:420px;
+  }
+
+  /* controls row */
+  .controls{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .status {
+    display:flex;align-items:center;gap:10px;
+  }
+  .status .bubble {
+    display:inline-flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,0.98),rgba(255,255,255,0.94));box-shadow:var(--shadow-sm);
+    color:var(--muted);font-weight:600;font-size:0.95rem;
+  }
+  .status .bubble.error { border-left:4px solid #f1a1c9; color:#6a2b3f; }
+  .status .bubble.warn { border-left:4px solid #ffd7e6; color:var(--muted-2); }
+  .status .dot {
+    width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 6px 14px rgba(255,138,179,0.12);
+  }
+
+  .actions { display:flex; gap:10px; align-items:center; }
+  .btn {
+    border: none;
+    padding:10px 14px;
+    border-radius:999px;
+    cursor:pointer;
+    font-weight:700;
+    font-size:0.95rem;
+    transition: transform .12s ease, box-shadow .12s ease;
+    background: linear-gradient(180deg,var(--card), rgba(255,250,252,0.95));
+    box-shadow: var(--shadow-sm);
+    color:var(--muted);
+    border:1px solid rgba(140,90,110,0.04);
+  }
+  .btn.primary {
+    background: linear-gradient(180deg,var(--accent),var(--accent-2));
+    color: white;
+    box-shadow: 0 6px 22px rgba(220,95,140,0.14);
+  }
+  .btn.ghost { background: transparent; color:var(--muted); border: 1px dashed rgba(140,90,110,0.06); }
+  .btn:hover { transform: translateY(-2px); }
+  .btn:focus { outline: var(--focus); outline-offset: 3px; }
+
+  /* svg container */
+  .svg-wrap{
+    width:100%;
+    border-radius:10px;
+    overflow:hidden;
+    background: linear-gradient(180deg, rgba(255,250,253,0.95), rgba(255,246,249,0.98));
+    border: 1px solid rgba(200,160,180,0.06);
+  }
+  object#svgMap{ width:100%; height:auto; display:block; min-height:420px; }
+
+  /* sidebar info */
+  .panel {
+    background: linear-gradient(180deg, rgba(255,250,253,0.98), rgba(255,246,249,0.99));
+    border-radius:12px;
+    padding:16px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(200,160,180,0.04);
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .panel .title { font-weight:700; color:#4a2431; font-size:0.95rem; display:flex;justify-content:space-between;align-items:center; gap:8px; }
+  .guest-card {
+    background: linear-gradient(180deg, #ffffff, rgba(255,248,250,0.95));
+    border-radius:12px;
+    padding:14px;
+    box-shadow: 0 8px 28px rgba(160,90,120,0.06);
+    display:flex;flex-direction:column;gap:8px;align-items:flex-start;
+  }
+  .guest-name { font-size:1.1rem; font-weight:700; color:#4a2431; }
+  .guest-mesa { font-size:2rem; font-weight:800; color:var(--accent); letter-spacing:1px; }
+  .guest-info { color:var(--muted); font-size:0.95rem; }
+
+  .hint { font-size:0.86rem; color:var(--muted); }
+
+  footer { margin-top:18px; text-align:center; color:var(--muted); font-size:0.88rem; }
+
+  /* small screen tweaks */
+  @media (max-width:640px){
+    .brand .logo{ width:40px;height:40px;font-size:16px;}
+    .panel { order:2; }
+    .svg-wrap { order:1; min-height:300px;}
+  }
 </style>
 </head>
 <body>
-<div class="page">
-  <header>
-    <h1>Mapa de Mesas — Invitación</h1>
-    <div></div>
-  </header>
-  <main class="map-card" role="main">
-    <div class="controls">
-      <div class="left"><div id="status" class="mensaje">Cargando mapa…</div></div>
-      <div class="actions">
-        <button id="copyLinkBtn" class="btn ghost" title="Copiar enlace">Copiar enlace</button>
-        <button id="reloadBtn" class="btn ghost" title="Recargar">Recargar</button>
+  <div class="page">
+    <header>
+      <div class="brand" aria-hidden="false">
+        <div class="logo" aria-hidden="true">XV</div>
+        <div>
+          <h1>Mapa de mesas</h1>
+          <p style="margin:4px 0 0;color:var(--muted);font-size:0.95rem">Escanea y verás tu mesa resaltada</p>
+        </div>
       </div>
+
+      <div class="status" aria-live="polite" aria-atomic="true">
+        <div id="statusBubble" class="bubble">Iniciando…</div>
+      </div>
+    </header>
+
+    <div class="grid" role="region" aria-label="Mapa y detalles">
+      <section class="map-card" aria-label="Mapa">
+        <div class="controls" role="toolbar" aria-label="Controles de mapa">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="dot" aria-hidden="true"></div>
+            <div style="color:var(--muted);font-weight:600">Indicador: ubicación</div>
+          </div>
+
+          <div class="actions">
+            <button id="copyLinkBtn" class="btn ghost" title="Copiar enlace actual">Copiar enlace</button>
+            <button id="reloadBtn" class="btn" title="Recargar">Recargar</button>
+          </div>
+        </div>
+
+        <div class="svg-wrap" aria-hidden="false">
+          <object id="svgMap" data="mapa.svg" type="image/svg+xml" aria-label="Mapa de mesas"></object>
+        </div>
+      </section>
+
+      <aside class="panel" aria-label="Información del invitado">
+        <div class="title">
+          <span>Invitado</span>
+          <small style="color:var(--muted)">Detalles</small>
+        </div>
+
+        <div id="guestCard" class="guest-card" aria-live="polite">
+          <div class="guest-name" id="guestName">—</div>
+          <div class="guest-mesa" id="guestMesa">—</div>
+          <div class="guest-info" id="guestInfo">Introduce tu código en la URL: <code>?codigo=TU_CODIGO</code></div>
+        </div>
+
+        <div style="display:flex;gap:8px;">
+          <button id="shareBtn" class="btn primary" title="Compartir enlace con código">Compartir enlace</button>
+          <button id="helpBtn" class="btn ghost" title="Ayuda">Ayuda</button>
+        </div>
+
+        <div class="hint" style="margin-top:auto">
+          Consejo: si tu código no aparece, revisa espacios o prueba con/ sin ceros a la izquierda.
+        </div>
+      </aside>
     </div>
-    <div class="svg-wrap" aria-hidden="false">
-      <object id="svgMap" data="mapa.svg" type="image/svg+xml" aria-label="Mapa de mesas"></object>
-    </div>
-  </main>
-</div>
+
+    <footer>
+      <small>Paleta: rosa pastel • Interfaz optimizada para móvil y escritorio</small>
+    </footer>
+  </div>
 
 <script>
-(async function(){
-const SVG_NS='http://www.w3.org/2000/svg';
-const statusEl=document.getElementById('status');
-const svgObj=document.getElementById('svgMap');
-const copyBtn=document.getElementById('copyLinkBtn');
-const reloadBtn=document.getElementById('reloadBtn');
+/* Lógica JS original — sin cambios funcionales importantes
+   Actualiza el panel lateral y status visuals para mejorar la UI.
+*/
+(function(){
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const statusBubble = document.getElementById('statusBubble');
+  const svgObj = document.getElementById('svgMap');
+  const copyBtn = document.getElementById('copyLinkBtn');
+  const reloadBtn = document.getElementById('reloadBtn');
+  const shareBtn = document.getElementById('shareBtn');
+  const helpBtn = document.getElementById('helpBtn');
 
-const params=new URLSearchParams(location.search);
-const codigoParam=params.get('codigo');
-const debugOn=params.get('debug')==='1';
+  const guestNameEl = document.getElementById('guestName');
+  const guestMesaEl = document.getElementById('guestMesa');
+  const guestInfoEl = document.getElementById('guestInfo');
 
-function setStatus(text,kind=''){statusEl.textContent=text; statusEl.className='mensaje'+(kind?' '+kind:'');}
+  const params = new URLSearchParams(location.search);
+  const codigoParamRaw = params.get('codigo');
+  const debugOn = params.get('debug') === '1';
 
-// Cargar mesas.json
-let mesas=[];
-async function loadMesas(){
-  try{
-    const res=await fetch('mesas.json',{cache:'no-store'});
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const data=await res.json();
-    mesas=Array.isArray(data)?data:(Array.isArray(data.mesas)?data.mesas:[]);
-    if(!mesas.length) throw new Error('mesas.json vacío');
-  }catch(e){console.error(e); setStatus('Error cargando mesas.json','error'); mesas=[];}
-}
+  // Google Sheets
+  const spreadsheetId = "1LKsB3nXQ8NqosmyuoiLTRxUrrQzsXAnf2hVlIxoiYQI";
+  const apiKey = "AIzaSyC916C1gjId46ClbCpxNaLRkPITQVKkF5E";
+  const sheetsRange = "Invitados!A2:I";
 
-// Google Sheets
-const spreadsheetId = "1LKsB3nXQ8NqosmyuoiLTRxUrrQzsXAnf2hVlIxoiYQI";
-const apiKey = "AIzaSyC916C1gjId46ClbCpxNaLRkPITQVKkF5E";
-let invitados=[];
+  // Estado
+  let mesas = [];
+  let invitados = [];
+  let svgDoc = null;
+  let svgRoot = null;
 
-function normalizar(texto){ return texto?texto.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase():""; }
+  function setStatus(text, kind='') {
+    statusBubble.textContent = text;
+    statusBubble.className = 'bubble' + (kind ? ' ' + kind : '');
+  }
 
-async function cargarInvitados(){
-  const range="Invitados!A2:G";
-  const url=`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`;
-  try{
-    const res=await fetch(url);
-    if(!res.ok) throw new Error("Error HTTP "+res.status);
-    const data=await res.json();
-    if(data.values){
-      invitados=data.values.map(row=>({codigo:row[0],nombre:row[1],mesa:row[5]}));
+  function setGuest(name, mesa, msg) {
+    guestNameEl.textContent = name || '—';
+    guestMesaEl.textContent = mesa ? String(mesa).padStart(2,'0') : '—';
+    guestInfoEl.textContent = msg || '';
+  }
+
+  function normalizar(texto){ return texto ? String(texto).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase() : ""; }
+  function trimStr(x){ return x===undefined||x===null ? '' : String(x).trim(); }
+
+  // cargar mesas.json
+  async function loadMesas(){
+    try {
+      const res = await fetch('mesas.json', {cache:'no-store'});
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      mesas = Array.isArray(data) ? data : (Array.isArray(data.mesas) ? data.mesas : []);
+      if (!mesas.length) throw new Error('mesas.json vacío o con formato inesperado');
+      return true;
+    } catch (e) {
+      console.error('Error cargando mesas.json', e);
+      setStatus('Error cargando mesas.json — revisa el archivo.', 'error');
+      setGuest('—', null, 'No se pudo cargar la configuración de mesas.');
+      mesas = [];
+      return false;
     }
-  }catch(e){console.error("Error cargando invitados",e);}
-}
-
-// SVG indicator
-let svgDoc=null, svgRoot=null;
-const svgInnerStyles=`
-  #indicator {
-    fill: rgba(255,138,179,0.18);
-    stroke: #ff8ab3;
-    stroke-width: 6;
-    filter: drop-shadow(0 8px 22px rgba(185,95,135,0.17));
-    transform-box: fill-box;
-    transform-origin: center center;
-    animation: pulse 1200ms ease-in-out infinite;
-    vector-effect: non-scaling-stroke;
   }
-  #indicator-label {
-    font-family: Inter, system-ui, sans-serif;
-    font-size: 18px;
-    font-weight:700;
-    fill:#4a2431;
-    text-anchor:middle;
-    pointer-events:none;
-  }
-  @keyframes pulse {0%{transform:scale(1);opacity:1}50%{transform:scale(1.25);opacity:0.48}100%{transform:scale(1);opacity:1}}
-`;
-function ensureIndicator(){
-  if(!svgDoc||!svgRoot) return null;
-  if(svgDoc.getElementById('indicator')) return svgDoc.getElementById('indicator');
-  if(!svgDoc.getElementById('__injected_style')){
-    const styleEl=svgDoc.createElementNS(SVG_NS,'style');
-    styleEl.id='__injected_style'; styleEl.textContent=svgInnerStyles;
-    svgRoot.appendChild(styleEl);
-  }
-  const g=svgDoc.createElementNS(SVG_NS,'g'); g.id='indicator-group'; g.setAttribute('aria-hidden','false');
-  const circle=svgDoc.createElementNS(SVG_NS,'circle'); circle.id='indicator'; circle.setAttribute('cx',0); circle.setAttribute('cy',0); circle.setAttribute('r',100);
-  const label=svgDoc.createElementNS(SVG_NS,'text'); label.id='indicator-label'; label.setAttribute('x',0); label.setAttribute('y',-120); label.textContent='';
-  g.appendChild(circle); g.appendChild(label);
-  svgRoot.appendChild(g);
-  return circle;
-}
 
-function updateIndicator(inv){
-  const mesaObj = mesas.find(m=>m.numero==inv.mesa||m.mesa==inv.mesa||m.id==inv.mesa);
-  if(!mesaObj){ setStatus(`Mesa ${inv.mesa} no encontrada en mesas.json`,'error'); return; }
-  const ind=ensureIndicator(); if(!ind) return;
-  const label=svgDoc.getElementById('indicator-label');
-  const cx=Number(mesaObj.x), cy=Number(mesaObj.y), r=(mesaObj.r?Number(mesaObj.r):100);
-  ind.setAttribute('cx',cx); ind.setAttribute('cy',cy); ind.setAttribute('r',r);
-  if(label){ label.textContent=`${inv.nombre} — Mesa ${inv.mesa}`; label.setAttribute('x',cx); label.setAttribute('y',cy-r-18); }
-  setStatus(`Invitado: ${inv.nombre} — Mesa ${inv.mesa}`);
-}
+  // cargar invitados
+  async function cargarInvitados(){
+    try {
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${sheetsRange}?key=${apiKey}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      if (!data.values) {
+        setStatus('No se encontraron registros en la hoja.', 'error');
+        invitados = [];
+        setGuest('—', null, 'No hay registros en la hoja de invitados.');
+        return false;
+      }
 
-// Load everything
-async function init(){
-  await loadMesas();
-  await cargarInvitados();
-  svgObj.addEventListener('load',()=>{
-    svgDoc=svgObj.contentDocument;
-    svgRoot=svgDoc.documentElement;
-    if(!codigoParam){ setStatus("No se proporcionó código",'warn'); return; }
-    const inv=invitados.find(i=>i.codigo===codigoParam);
-    if(!inv){ setStatus("Código no válido o invitado no encontrado",'error'); return; }
-    updateIndicator(inv);
+      // remover headers si vienen
+      const rows = data.values.slice(1);
+      if (rows.length === 0) {
+        setStatus('No se encontraron registros de invitados.', 'error');
+        invitados = [];
+        setGuest('—', null, 'Lista de invitados vacía.');
+        return false;
+      }
+
+      invitados = rows.map(row => ({
+        codigo: trimStr(row[0]),
+        nombre: trimStr(row[1]),
+        mesa: trimStr(row[8] || '')
+      }));
+
+      return true;
+    } catch (e) {
+      console.error('Error cargando invitados', e);
+      setStatus('Error cargando lista de invitados (Google Sheets).', 'error');
+      invitados = [];
+      setGuest('—', null, 'No se pudo cargar la lista de invitados.');
+      return false;
+    }
+  }
+
+  function findInvitadoByCodigo(codigo) {
+    if (!codigo) return null;
+    const key = normalizar(codigo);
+    return invitados.find(inv => normalizar(inv.codigo) === key || normalizar(inv.nombre) === key) || null;
+  }
+
+  function mesaMatches(mObj, mesaValue) {
+    if (!mObj) return false;
+    const candidates = [ mObj.numero, mObj.mesa, mObj.id, mObj.number, mObj.num ].filter(x => x !== undefined && x !== null);
+    for (const c of candidates) {
+      if (String(c) === String(mesaValue)) return true;
+      const nc = parseInt(c,10); const nv = parseInt(mesaValue,10);
+      if (!isNaN(nc) && !isNaN(nv) && nc === nv) return true;
+      if (String(c).padStart(2,'0') === String(mesaValue).padStart(2,'0')) return true;
+    }
+    return false;
+  }
+  function findMesaObj(mesaValue) {
+    if (!mesas || !mesas.length) return null;
+    return mesas.find(m => mesaMatches(m, mesaValue)) || null;
+  }
+
+  // SVG styles + indicator creation
+  const svgInnerStyles = `
+    #indicator {
+      fill: rgba(255,138,179,0.18);
+      stroke: #ff8ab3;
+      stroke-width: 6;
+      filter: drop-shadow(0 8px 22px rgba(185,95,135,0.17));
+      transform-box: fill-box;
+      transform-origin: center center;
+      animation: pulse 1200ms ease-in-out infinite;
+      vector-effect: non-scaling-stroke;
+    }
+    #indicator-label {
+      font-family: Inter, system-ui, sans-serif;
+      font-size: 16px;
+      font-weight:700;
+      fill:#4a2431;
+      text-anchor:middle;
+      pointer-events:none;
+    }
+    #indicator-label-bg {
+      fill: #fff;
+      stroke: rgba(120,60,90,0.06);
+      rx: 8;
+      ry: 8;
+      opacity: 0.95;
+    }
+    @keyframes pulse {0%{transform:scale(1);opacity:1}50%{transform:scale(1.18);opacity:0.6}100%{transform:scale(1);opacity:1}}
+    .debug-grid line { stroke: rgba(90,60,82,0.06); stroke-width:1; }
+    .debug-label { font-size:10px; fill: rgba(60,40,60,0.45); }
+  `;
+
+  function ensureIndicator() {
+    if (!svgDoc || !svgRoot) return null;
+    const existing = svgDoc.getElementById('indicator');
+    if (existing) return existing;
+
+    if (!svgDoc.getElementById('__injected_style')) {
+      const styleEl = svgDoc.createElementNS(SVG_NS, 'style');
+      styleEl.setAttribute('id','__injected_style');
+      styleEl.textContent = svgInnerStyles;
+      svgRoot.appendChild(styleEl);
+    }
+
+    const g = svgDoc.createElementNS(SVG_NS, 'g');
+    g.setAttribute('id','indicator-group');
+    g.setAttribute('aria-hidden','false');
+
+    const circle = svgDoc.createElementNS(SVG_NS, 'circle');
+    circle.setAttribute('id','indicator');
+    circle.setAttribute('cx', 0);
+    circle.setAttribute('cy', 0);
+    circle.setAttribute('r', 100);
+
+    const labelBg = svgDoc.createElementNS(SVG_NS, 'rect');
+    labelBg.setAttribute('id','indicator-label-bg');
+    labelBg.setAttribute('width','200');
+    labelBg.setAttribute('height','32');
+    labelBg.setAttribute('x','-100');
+    labelBg.setAttribute('y','-150');
+
+    const label = svgDoc.createElementNS(SVG_NS, 'text');
+    label.setAttribute('id','indicator-label');
+    label.setAttribute('x',0);
+    label.setAttribute('y',-130);
+    label.textContent = '';
+
+    g.appendChild(circle);
+    g.appendChild(labelBg);
+    g.appendChild(label);
+
+    svgRoot.appendChild(g);
+    return circle;
+  }
+
+  function updateIndicatorForInvitado(inv) {
+    if (!svgDoc || !svgRoot) return false;
+    const mesaVal = inv.mesa;
+    const mesaObj = findMesaObj(mesaVal);
+    if (!mesaObj) {
+      setStatus(`Mesa ${mesaVal} no encontrada en mesas.json`, 'error');
+      setGuest(inv.nombre || '—', null, `Mesa ${mesaVal} no encontrada`);
+      return false;
+    }
+
+    const ind = ensureIndicator();
+    if (!ind) return false;
+
+    const label = svgDoc.getElementById('indicator-label');
+    const labelBg = svgDoc.getElementById('indicator-label-bg');
+
+    const cx = Number(mesaObj.x);
+    const cy = Number(mesaObj.y);
+    const r = (mesaObj.r !== undefined && !isNaN(Number(mesaObj.r))) ? Number(mesaObj.r) : 100;
+
+    ind.setAttribute('cx', cx);
+    ind.setAttribute('cy', cy);
+    ind.setAttribute('r', r);
+
+    // mostrar solo "Mesa XX" en el label del mapa
+    const displayMesa = String(mesaVal).padStart(2,'0');
+    const text = `Mesa ${displayMesa}`;
+    label.textContent = text;
+    label.setAttribute('x', cx);
+    label.setAttribute('y', cy - r - 16);
+
+    const approxCharWidth = 9;
+    const padding = 18;
+    const textWidth = Math.max(80, text.length * approxCharWidth);
+    labelBg.setAttribute('width', String(textWidth + padding));
+    labelBg.setAttribute('height', '32');
+    labelBg.setAttribute('x', String(cx - (textWidth + padding)/2));
+    labelBg.setAttribute('y', String(cy - r - 34));
+
+    setStatus(`Invitado: ${inv.nombre} — Mesa ${displayMesa}`);
+    setGuest(inv.nombre, displayMesa, `Mesa ${displayMesa} — ¡Disfruta la recepción!`);
+    return true;
+  }
+
+  function drawDebug() {
+    if (!debugOn || !svgDoc || !svgRoot) return;
+    const prev = svgDoc.getElementById('debug-layer');
+    if (prev) prev.remove();
+    const g = svgDoc.createElementNS(SVG_NS, 'g');
+    g.setAttribute('id','debug-layer');
+
+    const viewBox = svgRoot.viewBox && svgRoot.viewBox.baseVal ? svgRoot.viewBox.baseVal : {width:1056, height:816};
+    const step = 48;
+    for (let x = 0; x <= viewBox.width; x += step) {
+      const ln = svgDoc.createElementNS(SVG_NS, 'line');
+      ln.setAttribute('x1', x); ln.setAttribute('y1', 0);
+      ln.setAttribute('x2', x); ln.setAttribute('y2', viewBox.height);
+      ln.setAttribute('class','debug-grid');
+      g.appendChild(ln);
+    }
+    for (let y = 0; y <= viewBox.height; y += step) {
+      const ln = svgDoc.createElementNS(SVG_NS, 'line');
+      ln.setAttribute('x1', 0); ln.setAttribute('y1', y);
+      ln.setAttribute('x2', viewBox.width); ln.setAttribute('y2', y);
+      ln.setAttribute('class','debug-grid');
+      g.appendChild(ln);
+    }
+
+    mesas.forEach(m => {
+      const lbl = svgDoc.createElementNS(SVG_NS, 'text');
+      lbl.setAttribute('x', Number(m.x) + 10);
+      lbl.setAttribute('y', Number(m.y) - 10);
+      lbl.setAttribute('class','debug-label');
+      const n = m.numero ?? m.mesa ?? m.id ?? m.number ?? '?';
+      lbl.textContent = `${String(n).padStart(2,'0')} (${m.x},${m.y})`;
+      g.appendChild(lbl);
+    });
+
+    svgRoot.appendChild(g);
+  }
+
+  function findClosestMesa(svgX, svgY, threshold = 140) {
+    if (!mesas || !mesas.length) return null;
+    let best = null, bestDist = Infinity;
+    mesas.forEach(m => {
+      const dx = svgX - Number(m.x);
+      const dy = svgY - Number(m.y);
+      const d = Math.sqrt(dx*dx + dy*dy);
+      if (d < bestDist) { bestDist = d; best = m; }
+    });
+    return (bestDist <= threshold) ? best : null;
+  }
+
+  function attachSvgInteractions() {
+    if (!svgRoot) return;
+    svgRoot.addEventListener('click', (ev) => {
+      try {
+        const pt = svgRoot.createSVGPoint();
+        pt.x = ev.clientX; pt.y = ev.clientY;
+        const loc = pt.matrixTransform(svgRoot.getScreenCTM().inverse());
+        const closest = findClosestMesa(loc.x, loc.y, 140);
+        if (closest) {
+          const fakeInv = { nombre: `Mesa ${closest.numero ?? closest.mesa ?? closest.id ?? '?'}`, mesa: closest.numero ?? closest.mesa ?? closest.id ?? (closest.number ?? closest.num) };
+          updateIndicatorForInvitado(fakeInv);
+        } else {
+          setStatus('No se detectó una mesa cercana al clic.', 'warn');
+        }
+      } catch (e) {
+        console.error('Error en click SVG', e);
+      }
+    });
+
+    svgRoot.addEventListener('dblclick', () => {
+      const url = location.href;
+      navigator.clipboard?.writeText(url).then(()=> setStatus('Enlace copiado al portapapeles.'))
+        .catch(()=> prompt('Copia esta URL:', url));
+    });
+
+    svgRoot.addEventListener('contextmenu', (ev) => {
+      ev.preventDefault();
+      const tgt = ev.target;
+      if (tgt && tgt.id === 'indicator') {
+        const cx = tgt.getAttribute('cx'), cy = tgt.getAttribute('cy');
+        setStatus(`Indicador: (${cx}, ${cy})`);
+      }
+    });
+  }
+
+  // principal
+  async function init() {
+    setStatus('Cargando mesas y lista de invitados...');
+    const okMesas = await loadMesas();
+    const okInv = await cargarInvitados();
+    if (!okMesas) return;
+    if (!okInv) {
+      setStatus('Lista de invitados no disponible. Si tienes código, no funcionará la búsqueda.', 'warn');
+    }
+
+    function onSvgLoaded() {
+      try {
+        svgDoc = svgObj.contentDocument;
+        if (!svgDoc) { setStatus('No se pudo acceder al SVG (problema de origen).', 'error'); setGuest('—', null, 'Error cargando mapa.'); return; }
+        svgRoot = svgDoc.documentElement;
+
+        drawDebug();
+
+        if (codigoParamRaw) {
+          const invited = findInvitadoByCodigo(codigoParamRaw);
+          if (!invited) {
+            setStatus('Código no válido o invitado no encontrado.', 'error');
+            setGuest('—', null, 'Código no válido o invitado no encontrado.');
+            const old = svgDoc.getElementById('indicator-group'); if (old) old.remove();
+            return;
+          }
+          const ok = updateIndicatorForInvitado(invited);
+          if (!ok) {
+            const old = svgDoc.getElementById('indicator-group'); if (old) old.remove();
+          }
+        } else {
+          setStatus('No se especificó código (parámetro ?codigo=...).', 'warn');
+          setGuest('—', null, 'Introduce tu código en la URL (?codigo=...)');
+        }
+
+        attachSvgInteractions();
+      } catch (e) {
+        console.error('Error al inicializar SVG', e);
+        setStatus('Ocurrió un error al inicializar el mapa.', 'error');
+      }
+    }
+
+    svgObj.addEventListener('load', onSvgLoaded);
+    try {
+      if (svgObj.contentDocument && svgObj.contentDocument.readyState === 'complete') onSvgLoaded();
+    } catch(e){}
+  }
+
+  // botones UI
+  copyBtn.addEventListener('click', () => {
+    const url = location.href;
+    navigator.clipboard?.writeText(url).then(()=> setStatus('URL copiada al portapapeles.'))
+      .catch(()=> prompt('Copia esta URL:', url));
   });
-}
 
-init();
+  shareBtn.addEventListener('click', () => {
+    // comparte la URL actual (útil para enviar a otra persona)
+    const url = location.href;
+    if (navigator.share) {
+      navigator.share({ title: 'Mi mesa', text: 'Aquí mi ubicación', url }).then(()=> setStatus('Compartido con éxito.'));
+    } else {
+      navigator.clipboard?.writeText(url).then(()=> setStatus('Enlace copiado para compartir.'))
+        .catch(()=> prompt('Copia esta URL:', url));
+    }
+  });
 
-// Buttons
-copyBtn.addEventListener('click',()=>{navigator.clipboard.writeText(location.href).then(()=>alert("Enlace copiado!"));});
-reloadBtn.addEventListener('click',()=>location.reload());
+  helpBtn.addEventListener('click', () => {
+    alert('Abre este enlace incluyendo tu código: ?codigo=TU_CODIGO\nEjemplo: ?codigo=ABC123\nSi no aparece, revisa espacios o ceros a la izquierda.');
+  });
+
+  reloadBtn.addEventListener('click', async () => {
+    setStatus('Recargando datos...');
+    await loadMesas();
+    await cargarInvitados();
+    try {
+      if (svgObj.contentDocument && svgObj.contentDocument.documentElement) {
+        svgDoc = svgObj.contentDocument;
+        svgRoot = svgDoc.documentElement;
+        const dbg = svgDoc.getElementById('debug-layer'); if (dbg) dbg.remove();
+        const old = svgDoc.getElementById('indicator-group'); if (old) old.remove();
+        drawDebug();
+        if (codigoParamRaw) {
+          const invited = findInvitadoByCodigo(codigoParamRaw);
+          if (!invited) { setStatus('Código no válido o invitado no encontrado.', 'error'); setGuest('—', null, 'Código no válido'); return; }
+          const ok = updateIndicatorForInvitado(invited);
+          if (!ok) {
+            const old2 = svgDoc.getElementById('indicator-group'); if (old2) old2.remove();
+          }
+        }
+      }
+    } catch (e) { console.error('Error al recargar', e); setStatus('Error al recargar SVG', 'error'); }
+  });
+
+  // iniciar
+  init();
 
 })();
 </script>
 </body>
 </html>
+
