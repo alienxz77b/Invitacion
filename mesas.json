@@ -1,0 +1,12 @@
+{
+"101": { "x": 150, "y": 200, "zona": "Interior" },
+"102": { "x": 320, "y": 200, "zona": "Interior" },
+"103": { "x": 490, "y": 200, "zona": "Interior" },
+"104": { "x": 660, "y": 200, "zona": "Terraza" },
+
+
+"201": { "x": 150, "y": 360, "zona": "VIP", "shape": "rect" },
+"202": { "x": 320, "y": 360, "zona": "VIP", "shape": "rect" },
+"203": { "x": 490, "y": 360, "zona": "VIP", "shape": "rect" },
+"204": { "x": 660, "y": 360, "zona": "VIP", "shape": "rect" }
+}
