@@ -6,142 +6,27 @@
 <title>Mapa de mesas — Invitación</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <style>
-  /* ----------------- Tema: rosa pastel ----------------- */
   :root{
-    --bg-1: #fff5f8;
-    --bg-2: #fff0f6;
-    --card: rgba(255,255,255,0.9);
-    --accent: #ff8ab3;        /* rosa principal */
-    --accent-2: #ff6f9c;      /* rosa oscuro */
-    --muted: #7a4b5f;
-    --glass: rgba(255,255,255,0.65);
-    --shadow: 0 10px 30px rgba(148,77,108,0.08);
-    --max-width: 1150px;
+    --bg-1:#fff5f8; --bg-2:#fff0f6; --card:rgba(255,255,255,0.92);
+    --accent:#ff8ab3; --accent-2:#ff6f9c; --muted:#7a4b5f;
+    --shadow:0 10px 30px rgba(148,77,108,0.08);
   }
-
-  html,body{height:100%;margin:0;font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
-  body{
-    background: linear-gradient(180deg, var(--bg-1), var(--bg-2));
-    color: #3b2130;
-    -webkit-font-smoothing:antialiased;
-    -moz-osx-font-smoothing:grayscale;
-  }
-
-  .page{
-    max-width: var(--max-width);
-    margin: 20px auto;
-    padding: 14px;
-  }
-
-  header{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
-    flex-wrap:wrap;
-    margin-bottom:12px;
-  }
-  header h1{ margin:0; font-size:1.25rem; letter-spacing:0.2px; }
-  header p{ margin:0; color:var(--muted); font-size:0.95rem; }
-
-  .map-card{
-    background: var(--card);
-    border-radius: 14px;
-    padding: 12px;
-    box-shadow: var(--shadow);
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-  }
-
-  /* contenedor del SVG (mapa.svg) */
-  .svg-wrap{
-    width:100%;
-    max-width:1056px;
-    margin: 0 auto;
-    position:relative;
-    border-radius:10px;
-    overflow:hidden;
-    background: linear-gradient(180deg, rgba(255,250,253,0.9), rgba(255,245,249,0.95));
-  }
-
-  /* el <object> que carga el mapa SVG */
-  object#svgMap{
-    width:100%;
-    height:auto;
-    display:block;
-    min-height: 360px; /* fallback mínimo */
-    border: none;
-    background: transparent;
-  }
-
-  /* mensajes */
-  .controls {
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
-    align-items:center;
-    justify-content:space-between;
-  }
-  .left-controls{ display:flex; gap:8px; align-items:center;}
-  .mensaje {
-    background:white;
-    color:#3b2130;
-    padding:8px 12px;
-    border-radius:10px;
-    box-shadow: 0 6px 18px rgba(115,70,95,0.04);
-    font-size:0.95rem;
-  }
-  .mensaje.warn { border-left:4px solid #ffd7e6; }
-  .mensaje.error { border-left:4px solid #f1a1c9; color:#6a2b3f; }
-
-  .actions { display:flex; gap:8px; align-items:center; }
-  .btn {
-    background: linear-gradient(180deg, var(--accent), var(--accent-2));
-    color:white;
-    border:none;
-    padding:8px 12px;
-    border-radius:10px;
-    cursor:pointer;
-    font-weight:600;
-    box-shadow: 0 6px 16px rgba(160,80,120,0.12);
-  }
-  .btn.ghost {
-    background: transparent;
-    color: var(--muted);
-    border: 1px solid rgba(120,70,90,0.06);
-    box-shadow:none;
-    font-weight:600;
-  }
-
-  .legend {
-    color:var(--muted);
-    font-size:0.9rem;
-    display:flex;
-    gap:12px;
-    align-items:center;
-    flex-wrap:wrap;
-  }
-  .legend .dot {
-    width:14px;height:14px;border-radius:50%;
-    background: var(--accent);
-    box-shadow: 0 4px 12px rgba(170,80,120,0.12);
-    display:inline-block;
-  }
-
-  footer {
-    margin-top:10px;
-    color:var(--muted);
-    font-size:0.85rem;
-    text-align:center;
-  }
-
-  /* responsive */
-  @media (max-width:640px){
-    header h1{ font-size:1.05rem; }
-    .mensaje{ font-size:0.9rem; padding:7px 10px;}
-    .btn{ padding:7px 10px; font-size:0.92rem; }
-  }
+  html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;}
+  body{background:linear-gradient(180deg,var(--bg-1),var(--bg-2)); color:#3b2130;}
+  .page{max-width:1150px;margin:20px auto;padding:14px;}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+  header h1{margin:0;font-size:1.25rem}
+  .map-card{background:var(--card);border-radius:14px;padding:12px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px}
+  .svg-wrap{width:100%;max-width:1056px;margin:0 auto;position:relative;border-radius:10px;overflow:hidden;background:linear-gradient(180deg, rgba(255,250,253,0.9), rgba(255,245,249,0.95));}
+  object#svgMap{width:100%;height:auto;display:block;min-height:360px;border:none;background:transparent;}
+  .controls{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+  .mensaje{background:white;padding:8px 12px;border-radius:10px;box-shadow:0 6px 18px rgba(115,70,95,0.04);font-size:0.95rem}
+  .mensaje.warn{border-left:4px solid #ffd7e6}
+  .mensaje.error{border-left:4px solid #f1a1c9;color:#6a2b3f}
+  .btn{background:linear-gradient(180deg,var(--accent),var(--accent-2));color:#fff;border:none;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600}
+  .btn.ghost{background:transparent;color:var(--muted);border:1px solid rgba(120,70,90,0.06);box-shadow:none}
+  footer{margin-top:10px;color:var(--muted);font-size:0.85rem;text-align:center}
+  @media(max-width:640px){header h1{font-size:1.05rem}.mensaje{font-size:0.9rem}}
 </style>
 </head>
 <body>
@@ -149,429 +34,348 @@
     <header>
       <div>
         <h1>Mapa de mesas — Invitación</h1>
-        <p>Abre con <code>?mesa=05</code> (o <code>?mesa=5</code>). Añade <code>&debug=1</code> para ver rejilla y coordenadas.</p>
+        <p style="margin:0;color:var(--muted)">Usa <code>?mesa=05</code> o <code>?mesa=5</code>. Añade <code>&debug=1</code> para rejilla.</p>
       </div>
-      <div class="legend" aria-hidden="true">
-        <span class="dot" aria-hidden="true"></span>
-        <span>Indicador: ubicación (círculo rosa)</span>
-      </div>
+      <div style="color:var(--muted)">Indicador: círculo rosa</div>
     </header>
 
-    <main class="map-card" role="main" aria-labelledby="mapaTitle">
+    <main class="map-card" role="main">
       <div class="controls">
-        <div class="left-controls">
-          <div id="status" class="mensaje">Cargando mapa...</div>
-        </div>
-
+        <div class="left"><div id="status" class="mensaje">Cargando mapa...</div></div>
         <div class="actions">
           <button id="copyLinkBtn" class="btn ghost" title="Copiar enlace actual">Copiar enlace</button>
-          <button id="reloadBtn" class="btn ghost" title="Recargar datos">Recargar</button>
+          <button id="reloadBtn" class="btn ghost" title="Recargar">Recargar</button>
         </div>
       </div>
 
       <div class="svg-wrap" aria-hidden="false">
-        <!-- Mapa SVG externo: debe existir mapa.svg en la misma carpeta -->
+        <!-- mapa.svg debe estar en la misma carpeta -->
         <object id="svgMap" data="mapa.svg" type="image/svg+xml" aria-label="Mapa de mesas"></object>
       </div>
 
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-        <div class="legend" style="margin-top:6px;">
-          <strong style="color:var(--muted)">Consejos:</strong>
-          <span>Haz clic sobre una mesa en el mapa para seleccionarla.</span>
-          <span>Doble clic sobre el mapa para copiar enlace de la mesa seleccionada.</span>
-        </div>
+      <div style="margin-top:8px;color:var(--muted);font-size:0.95rem">
+        Haz clic para seleccionar la mesa; doble clic para copiar enlace de la mesa seleccionada.
       </div>
     </main>
 
     <footer>
-      <small>Diseño: paleta rosa pastel • Indicador: círculo animado (r ≈ 100px)</small>
+      Diseño: paleta rosa pastel • Indicador: círculo animado (r ≈ 100px)
     </footer>
   </div>
 
-  <script>
-  (function(){
-    // -------------------------- utilidades --------------------------
-    const $ = sel => document.querySelector(sel);
-    const statusEl = $('#status');
-    const svgObj = $('#svgMap');
-    const copyBtn = $('#copyLinkBtn');
-    const reloadBtn = $('#reloadBtn');
+<script>
+(function(){
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const statusEl = document.getElementById('status');
+  const svgObj = document.getElementById('svgMap');
+  const copyBtn = document.getElementById('copyLinkBtn');
+  const reloadBtn = document.getElementById('reloadBtn');
 
-    const getParam = (name) => new URLSearchParams(location.search).get(name);
-    const rawMesaParam = getParam('mesa');
-    const debugOn = getParam('debug') === '1';
+  const getParam = name => new URLSearchParams(location.search).get(name);
+  const rawMesaParam = getParam('mesa');
+  const debugOn = getParam('debug') === '1';
 
-    function setStatus(text, kind='') {
-      statusEl.textContent = text;
-      statusEl.className = 'mensaje' + (kind ? ' ' + kind : '');
-    }
+  function setStatus(text, kind='') {
+    statusEl.textContent = text;
+    statusEl.className = 'mensaje' + (kind ? ' ' + kind : '');
+  }
 
-    function numericMesaId(obj) {
-      // soporta diferentes claves: mesa, numero, number, id
-      const keys = ['mesa','numero','number','num','id'];
-      for (const k of keys) {
-        if (k in obj) {
-          const v = obj[k];
-          const n = parseInt(v,10);
-          if (!isNaN(n)) return n;
-        }
-      }
-      return null;
-    }
-
-    // -------------------------- carga JSON mesas --------------------------
-    let mesas = [];
-    async function loadMesas(){
-      try {
-        const res = await fetch('mesas.json', {cache: 'no-store'});
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const data = await res.json();
-        // data puede ser array o {mesas: [...]}
-        mesas = Array.isArray(data) ? data : (Array.isArray(data.mesas) ? data.mesas : []);
-        if (!mesas.length) throw new Error('Formato inválido de mesas.json');
-        setStatus('Datos de mesas cargados.', '');
-      } catch(err) {
-        console.error('Error cargando mesas.json:', err);
-        setStatus('Error cargando mesas.json — revisa que el archivo exista en la misma carpeta.', 'error');
-        mesas = [];
+  function numericMesaId(obj) {
+    const keys = ['mesa','numero','number','num','id'];
+    for (const k of keys) {
+      if (k in obj) {
+        const n = parseInt(obj[k],10);
+        if (!isNaN(n)) return n;
       }
     }
+    return null;
+  }
 
-    // -------------------------- trabajar con el SVG embebido --------------------------
-    let svgDoc = null;
-    let svgRoot = null;
+  // datos
+  let mesas = [];
+  async function loadMesas(){
+    try {
+      const res = await fetch('mesas.json', {cache:'no-store'});
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      mesas = Array.isArray(data) ? data : (Array.isArray(data.mesas) ? data.mesas : []);
+      if (!mesas.length) throw new Error('Formato inválido de mesas.json');
+      setStatus('Datos de mesas cargados.');
+    } catch (err) {
+      console.error('Error cargando mesas.json:', err);
+      setStatus('Error cargando mesas.json — revisa el archivo.', 'error');
+      mesas = [];
+    }
+  }
 
-    // estilos / animación dentro del SVG (se inyectarán al documento SVG)
-    const svgInnerStyles = `
-      /* indicador: círculo rosa con pulso */
-      #indicator {
-        fill: rgba(255,138,179,0.18);
-        stroke: #ff8ab3;
-        stroke-width: 6;
-        r: 100;
-        filter: drop-shadow(0 8px 22px rgba(185,95,135,0.17));
-        transform-origin: center;
-        animation: pulse 1200ms ease-in-out infinite;
-      }
-      #indicator-label {
-        font-family: Inter, system-ui, sans-serif;
-        font-size: 18px;
-        font-weight: 700;
-        fill: #4a2431;
-        text-anchor: middle;
-      }
-      @keyframes pulse {
-        0% { transform: scale(1); opacity: 1; }
-        50% { transform: scale(1.25); opacity: 0.48; }
-        100% { transform: scale(1); opacity: 1; }
-      }
-      .debug-grid line { stroke: rgba(90,60,82,0.06); stroke-width:1; }
-      .debug-label { font-size:10px; fill: rgba(60,40,60,0.45); }
-    `;
+  // referencias al documento SVG y al elemento root
+  let svgDoc = null;
+  let svgRoot = null;
 
-    // crea el elemento indicador dentro del svgDoc (si no existe)
-    function ensureIndicator(svg) {
-      // si ya existe, retornarlo
-      let ind = svg.getElementById('indicator');
-      if (ind) return ind;
+  // estilos que inyectaremos dentro del SVG
+  const svgInnerStyles = `
+    #indicator { fill: rgba(255,138,179,0.18); stroke: #ff8ab3; stroke-width: 6; filter: drop-shadow(0 8px 22px rgba(185,95,135,0.17)); transform-origin: center; animation: pulse 1200ms ease-in-out infinite; }
+    #indicator-label { font-family: Inter, system-ui, sans-serif; font-size: 18px; font-weight:700; fill:#4a2431; text-anchor:middle; pointer-events:none; }
+    @keyframes pulse { 0% { transform: scale(1); opacity: 1 } 50% { transform: scale(1.25); opacity:0.48 } 100% { transform: scale(1); opacity:1 } }
+    .debug-grid line { stroke: rgba(90,60,82,0.06); stroke-width:1; }
+    .debug-label { font-size:10px; fill: rgba(60,40,60,0.45); }
+  `;
 
-      // inyectar <style> en el SVG (para animaciones y look)
-      const styleEl = svg.createElementNS('http://www.w3.org/2000/svg','style');
+  // Crea/inyecta indicador en el SVG usando svgDoc para crear nodos
+  function ensureIndicator() {
+    if (!svgDoc || !svgRoot) return null;
+    // doc-level lookup/creation
+    let ind = svgDoc.getElementById('indicator');
+    if (ind) return ind;
+
+    // inyectar estilo si no existe
+    if (!svgDoc.getElementById('__injected_style')) {
+      const styleEl = svgDoc.createElementNS(SVG_NS, 'style');
+      styleEl.setAttribute('id','__injected_style');
       styleEl.textContent = svgInnerStyles;
-      svg.appendChild(styleEl);
-
-      // grupo contenedor para indicador + etiqueta
-      const g = svg.createElementNS('http://www.w3.org/2000/svg','g');
-      g.setAttribute('id','indicator-group');
-      g.setAttribute('aria-hidden','false');
-
-      const circle = svg.createElementNS('http://www.w3.org/2000/svg','circle');
-      circle.setAttribute('id','indicator');
-      // valores por defecto; se actualizarán con selectMesa()
-      circle.setAttribute('cx', 0);
-      circle.setAttribute('cy', 0);
-      circle.setAttribute('r', 100);
-
-      const labelBg = svg.createElementNS('http://www.w3.org/2000/svg','rect');
-      labelBg.setAttribute('id','indicator-label-bg');
-      labelBg.setAttribute('rx','8');
-      labelBg.setAttribute('ry','8');
-      // estilo inline para que no dependa de CSS externo
-      labelBg.setAttribute('fill','#fff');
-      labelBg.setAttribute('stroke','rgba(120,60,90,0.06)');
-      labelBg.setAttribute('width','120');
-      labelBg.setAttribute('height','28');
-      labelBg.setAttribute('x','-60');
-      labelBg.setAttribute('y','-140');
-      labelBg.setAttribute('opacity','0.95');
-
-      const label = svg.createElementNS('http://www.w3.org/2000/svg','text');
-      label.setAttribute('id','indicator-label');
-      label.setAttribute('x',0);
-      label.setAttribute('y',-120);
-      label.textContent = '';
-
-      // orden: círculo detrás del label bg y text? queremos círculo visible y label encima.
-      g.appendChild(circle);
-      g.appendChild(labelBg);
-      g.appendChild(label);
-
-      svg.appendChild(g);
-      return circle;
+      svgRoot.appendChild(styleEl);
     }
 
-    // actualiza posición y texto del indicador
-    function updateIndicator(svg, mesaObj) {
-      const ind = ensureIndicator(svg);
-      const g = svg.getElementById('indicator-group');
-      const label = svg.getElementById('indicator-label');
-      const labelBg = svg.getElementById('indicator-label-bg');
+    // crear grupo indicador
+    const g = svgDoc.createElementNS(SVG_NS, 'g');
+    g.setAttribute('id','indicator-group');
+    g.setAttribute('aria-hidden','false');
 
-      const cx = Number(mesaObj.x);
-      const cy = Number(mesaObj.y);
-      const r = (mesaObj.r !== undefined && !isNaN(Number(mesaObj.r))) ? Number(mesaObj.r) : 100;
+    const circle = svgDoc.createElementNS(SVG_NS, 'circle');
+    circle.setAttribute('id','indicator');
+    circle.setAttribute('cx', 0);
+    circle.setAttribute('cy', 0);
+    circle.setAttribute('r', 100);
 
-      ind.setAttribute('cx', cx);
-      ind.setAttribute('cy', cy);
-      ind.setAttribute('r', r);
+    const labelBg = svgDoc.createElementNS(SVG_NS, 'rect');
+    labelBg.setAttribute('id','indicator-label-bg');
+    labelBg.setAttribute('rx','8');
+    labelBg.setAttribute('ry','8');
+    labelBg.setAttribute('fill','#fff');
+    labelBg.setAttribute('stroke','rgba(120,60,90,0.06)');
+    labelBg.setAttribute('width','120');
+    labelBg.setAttribute('height','28');
+    labelBg.setAttribute('x','-60');
+    labelBg.setAttribute('y','-140');
+    labelBg.setAttribute('opacity','0.95');
 
-      // etiqueta "Mesa XX"
-      const mesaNum = numericMesaId(mesaObj) ?? mesaObj.mesa ?? mesaObj.numero ?? mesaObj.number ?? mesaObj.id ?? '?';
+    const label = svgDoc.createElementNS(SVG_NS, 'text');
+    label.setAttribute('id','indicator-label');
+    label.setAttribute('x',0);
+    label.setAttribute('y',-120);
+    label.textContent = '';
+
+    g.appendChild(circle);
+    g.appendChild(labelBg);
+    g.appendChild(label);
+    svgRoot.appendChild(g);
+    return circle;
+  }
+
+  function updateIndicator(mesaObj) {
+    if (!svgDoc || !svgRoot) return;
+    const ind = ensureIndicator();
+    if (!ind) return;
+    const label = svgDoc.getElementById('indicator-label');
+    const labelBg = svgDoc.getElementById('indicator-label-bg');
+
+    const cx = Number(mesaObj.x);
+    const cy = Number(mesaObj.y);
+    const r = (mesaObj.r !== undefined && !isNaN(Number(mesaObj.r))) ? Number(mesaObj.r) : 100;
+
+    ind.setAttribute('cx', cx);
+    ind.setAttribute('cy', cy);
+    ind.setAttribute('r', r);
+
+    const mesaNum = numericMesaId(mesaObj) ?? mesaObj.mesa ?? mesaObj.numero ?? mesaObj.number ?? mesaObj.id ?? '?';
+    if (label) {
       label.textContent = `Mesa ${String(mesaNum).padStart(2,'0')}`;
-
-      // posicionar labelBg y label relativo al cx/cy: los elementos ya usan coordinates x,y as absolute because they are inside the same group with absolute coords
-      // label y above circle:
       label.setAttribute('x', cx);
-      label.setAttribute('y', cy - r - 18); // 18 px above circle
+      label.setAttribute('y', cy - r - 18);
+    }
+    if (labelBg) {
       labelBg.setAttribute('x', cx - 60);
       labelBg.setAttribute('y', cy - r - 34);
     }
+  }
 
-    // -------------------------- seleccionar mesa por número (o por objeto) --------------------------
-    function selectMesaByNumber(svg, num) {
-      if (!mesas || !mesas.length) return null;
-      const buscado = parseInt(num,10);
-      if (isNaN(buscado)) return null;
-      const found = mesas.find(m => {
-        const n = numericMesaId(m);
-        return n === buscado;
-      });
-      if (!found) {
-        setStatus(`La mesa ${num} no existe en mesas.json`, 'error');
-        return null;
+  function selectMesaByNumber(num) {
+    if (!mesas || !mesas.length) return null;
+    const buscado = parseInt(num, 10);
+    if (isNaN(buscado)) return null;
+    const found = mesas.find(m => {
+      const n = numericMesaId(m);
+      return n === buscado;
+    });
+    if (!found) {
+      setStatus(`La mesa ${num} no existe en mesas.json`, 'error');
+      return null;
+    }
+    updateIndicator(found);
+    setStatus(`Mesa ${String(buscado).padStart(2,'0')} localizada 🎉`);
+    const params = new URLSearchParams(location.search);
+    params.set('mesa', String(buscado));
+    history.replaceState(null, '', location.pathname + '?' + params.toString());
+    return found;
+  }
+
+  function drawDebug() {
+    if (!debugOn || !svgDoc || !svgRoot) return;
+    // limpiar capa anterior
+    const prev = svgDoc.getElementById('debug-layer');
+    if (prev) prev.remove();
+
+    const g = svgDoc.createElementNS(SVG_NS, 'g');
+    g.setAttribute('id','debug-layer');
+
+    const viewBox = svgRoot.viewBox && svgRoot.viewBox.baseVal ? svgRoot.viewBox.baseVal : {width:1056,height:816};
+    const step = 48;
+    for (let x = 0; x <= viewBox.width; x += step) {
+      const ln = svgDoc.createElementNS(SVG_NS, 'line');
+      ln.setAttribute('x1', x); ln.setAttribute('y1', 0); ln.setAttribute('x2', x); ln.setAttribute('y2', viewBox.height);
+      g.appendChild(ln);
+    }
+    for (let y = 0; y <= viewBox.height; y += step) {
+      const ln = svgDoc.createElementNS(SVG_NS, 'line');
+      ln.setAttribute('x1', 0); ln.setAttribute('y1', y); ln.setAttribute('x2', viewBox.width); ln.setAttribute('y2', y);
+      g.appendChild(ln);
+    }
+    mesas.forEach(m => {
+      const lbl = svgDoc.createElementNS(SVG_NS, 'text');
+      lbl.setAttribute('x', Number(m.x) + 10);
+      lbl.setAttribute('y', Number(m.y) - 10);
+      lbl.setAttribute('class','debug-label');
+      const n = numericMesaId(m) ?? m.numero ?? m.mesa ?? m.number ?? '?';
+      lbl.textContent = `${String(n).padStart(2,'0')} (${m.x},${m.y})`;
+      g.appendChild(lbl);
+    });
+    svgRoot.appendChild(g);
+  }
+
+  function findClosestMesa(svgX, svgY, threshold = 140) {
+    if (!mesas || !mesas.length) return null;
+    let best = null, bestDist = Infinity;
+    mesas.forEach(m => {
+      const dx = svgX - Number(m.x);
+      const dy = svgY - Number(m.y);
+      const d = Math.sqrt(dx*dx + dy*dy);
+      if (d < bestDist) { bestDist = d; best = m; }
+    });
+    return (bestDist <= threshold) ? best : null;
+  }
+
+  function attachSvgInteractions() {
+    if (!svgRoot) return;
+    // click
+    svgRoot.addEventListener('click', (ev) => {
+      try {
+        const pt = svgRoot.createSVGPoint();
+        pt.x = ev.clientX; pt.y = ev.clientY;
+        const loc = pt.matrixTransform(svgRoot.getScreenCTM().inverse());
+        const closest = findClosestMesa(loc.x, loc.y, 140);
+        if (closest) {
+          selectMesaByNumber(numericMesaId(closest));
+        } else {
+          setStatus('No se detectó una mesa cerca del punto clicado.', 'warn');
+        }
+      } catch (e) {
+        console.error(e);
       }
-      updateIndicator(svg, found);
-      setStatus(`Mesa ${String(buscado).padStart(2,'0')} localizada 🎉`);
-      // actualizar URL (preservando debug)
+    });
+
+    // dblclick -> copiar enlace
+    svgRoot.addEventListener('dblclick', () => {
+      const label = svgDoc.getElementById('indicator-label');
+      let mesaNum = null;
+      if (label) {
+        const m = label.textContent.match(/Mesa\s+(\d+)/);
+        if (m) mesaNum = m[1];
+      }
+      if (!mesaNum) { setStatus('No hay mesa seleccionada para copiar enlace.', 'error'); return; }
       const params = new URLSearchParams(location.search);
-      params.set('mesa', String(buscado));
-      history.replaceState(null, '', location.pathname + '?' + params.toString());
-      return found;
-    }
+      params.set('mesa', mesaNum);
+      const url = location.origin + location.pathname + '?' + params.toString();
+      navigator.clipboard?.writeText(url).then(()=> setStatus('Enlace copiado al portapapeles.'))
+        .catch(()=> prompt('Copia este enlace:', url));
+    });
 
-    // -------------------------- debug: dibujar rejilla y coordenadas --------------------------
-    function drawDebug(svg) {
-      if (!debugOn) return;
-      // remover si existe
-      const old = svg.getElementById('debug-layer');
-      if (old) old.remove();
-
-      const g = svg.createElementNS('http://www.w3.org/2000/svg','g');
-      g.setAttribute('id','debug-layer');
-
-      // rejilla cada 48 px
-      const viewBox = svg.viewBox && svg.viewBox.baseVal ? svg.viewBox.baseVal : {width: 1056, height:816};
-      const step = 48;
-      for (let x = 0; x <= viewBox.width; x += step) {
-        const ln = svg.createElementNS('http://www.w3.org/2000/svg','line');
-        ln.setAttribute('x1', x); ln.setAttribute('y1', 0);
-        ln.setAttribute('x2', x); ln.setAttribute('y2', viewBox.height);
-        ln.setAttribute('class','debug-grid');
-        g.appendChild(ln);
+    // contextmenu sobre indicador -> coords
+    svgRoot.addEventListener('contextmenu', (ev) => {
+      ev.preventDefault();
+      const target = ev.target;
+      if (target && target.id === 'indicator') {
+        const cx = target.getAttribute('cx');
+        const cy = target.getAttribute('cy');
+        setStatus(`Indicador: (${cx}, ${cy})`);
       }
-      for (let y = 0; y <= viewBox.height; y += step) {
-        const ln = svg.createElementNS('http://www.w3.org/2000/svg','line');
-        ln.setAttribute('x1', 0); ln.setAttribute('y1', y);
-        ln.setAttribute('x2', viewBox.width); ln.setAttribute('y2', y);
-        ln.setAttribute('class','debug-grid');
-        g.appendChild(ln);
-      }
+    });
+  }
 
-      // etiquetas de cada mesa
-      mesas.forEach(m => {
-        const label = svg.createElementNS('http://www.w3.org/2000/svg','text');
-        label.setAttribute('x', Number(m.x) + 10);
-        label.setAttribute('y', Number(m.y) - 10);
-        label.setAttribute('class','debug-label');
-        const n = numericMesaId(m) ?? m.numero ?? m.mesa ?? m.number ?? '?';
-        label.textContent = `${String(n).padStart(2,'0')} (${m.x},${m.y})`;
-        g.appendChild(label);
-      });
+  // inicializador
+  async function init() {
+    await loadMesas();
+    if (!mesas.length) return;
 
-      svg.appendChild(g);
-    }
-
-    // -------------------------- encontrar mesa más cercana a un punto SVG --------------------------
-    function findClosestMesa(svgX, svgY, threshold = 140) {
-      if (!mesas || !mesas.length) return null;
-      let best = null;
-      let bestDist = Infinity;
-      mesas.forEach(m => {
-        const dx = svgX - Number(m.x);
-        const dy = svgY - Number(m.y);
-        const d = Math.sqrt(dx*dx + dy*dy);
-        if (d < bestDist) { bestDist = d; best = m; }
-      });
-      return (bestDist <= threshold) ? best : null;
-    }
-
-    // -------------------------- interacción: click/dblclick --------------------------
-    function attachSvgInteractions(svg) {
-      // clic: encontrar la mesa más cercana y seleccionarla
-      svg.addEventListener('click', (ev) => {
-        try {
-          const pt = svg.createSVGPoint();
-          pt.x = ev.clientX; pt.y = ev.clientY;
-          const loc = pt.matrixTransform(svg.getScreenCTM().inverse());
-          const closest = findClosestMesa(loc.x, loc.y, 140);
-          if (closest) {
-            selectMesaByNumber(svg, numericMesaId(closest));
-          } else {
-            setStatus('No se detectó una mesa cerca del punto clicado.', 'warn');
-          }
-        } catch(e) {
-          // fallback si getScreenCTM falla
-          console.error(e);
-        }
-      });
-
-      // doble clic: copiar URL con mesa actual (si hay indicador)
-      svg.addEventListener('dblclick', (ev) => {
-        // intento derivar el numero de la etiqueta del indicador (si existe)
-        const indLabel = svg.getElementById('indicator-label');
-        let mesaText = indLabel ? indLabel.textContent : null;
-        let mesaNum = null;
-        if (mesaText) {
-          const m = mesaText.match(/Mesa\s+(\d+)/);
-          if (m) mesaNum = m[1];
-        }
-        if (!mesaNum) {
-          setStatus('No hay mesa seleccionada para copiar enlace.', 'error');
+    function onSvgLoad() {
+      try {
+        svgDoc = svgObj.contentDocument;
+        if (!svgDoc) {
+          setStatus('No se pudo acceder al SVG (posible problema de origen).', 'error');
           return;
         }
-        const params = new URLSearchParams(location.search);
-        params.set('mesa', mesaNum);
-        const url = location.origin + location.pathname + '?' + params.toString();
-        navigator.clipboard?.writeText(url).then(() => {
-          setStatus('Enlace copiado al portapapeles: ' + url);
-        }).catch(() => {
-          // fallback: abrir diálogo con la URL para que el usuario la copie manualmente
-          prompt('Copia este enlace:', url);
-        });
-      });
+        svgRoot = svgDoc.documentElement;
 
-      // contexto (right click) sobre indicador -> mostrar coordenadas
-      svg.addEventListener('contextmenu', (ev) => {
-        ev.preventDefault();
-        // si right click sobre indicador-group, mostrar coords
-        const target = ev.target;
-        if (target && target.id === 'indicator') {
-          const cx = target.getAttribute('cx');
-          const cy = target.getAttribute('cy');
-          setStatus(`Indicador: (${cx}, ${cy})`);
-        }
-      });
-    }
-
-    // -------------------------- principal: cargar datos y esperar al SVG --------------------------
-    async function init() {
-      await loadMesas();
-      if (!mesas.length) return;
-
-      // cuando el <object> carga el documento SVG
-      function onSvgLoad() {
-        try {
-          svgDoc = svgObj.contentDocument;
-          if (!svgDoc) {
-            setStatus('No se pudo acceder al contenido SVG (posible problema de origen).', 'error');
-            return;
-          }
-          svgRoot = svgDoc.documentElement;
-
-          // dibujar debug si aplica
-          drawDebug(svgRoot);
-
-          // si el usuario pasó ?mesa=..., seleccionar
-          if (rawMesaParam) {
-            const parsed = parseInt(rawMesaParam, 10);
-            if (!isNaN(parsed)) {
-              const selected = selectMesaByNumber(svgRoot, parsed);
-              if (!selected) {
-                // nada, ya se mostró mensaje de error
-              }
-            } else {
-              setStatus('Parámetro ?mesa inválido.', 'error');
-            }
-          } else {
-            setStatus('No se especificó ?mesa — utiliza ?mesa=05 (o ?mesa=5).', 'warn');
-          }
-
-          // interacciones (click, dblclick...)
-          attachSvgInteractions(svgRoot);
-        } catch (e) {
-          console.error('Error al inicializar SVG:', e);
-          setStatus('Ocurrió un error al inicializar el mapa SVG.', 'error');
-        }
-      }
-
-      // si el objeto ya está cargado, onload puede no disparar: comprobar readyState
-      svgObj.addEventListener('load', onSvgLoad);
-      // por si ya estaba cargado (rare case)
-      try {
-        if (svgObj.contentDocument && svgObj.contentDocument.readyState === 'complete') {
-          onSvgLoad();
-        }
-      } catch(e){ /* ignore cross-browser quirks */ }
-    }
-
-    // botones UI
-    copyBtn.addEventListener('click', () => {
-      // copiar la URL actual
-      const url = location.href;
-      navigator.clipboard?.writeText(url).then(()=> {
-        setStatus('URL actual copiada al portapapeles.');
-      }).catch(()=> {
-        prompt('Copia esta URL:', url);
-      });
-    });
-
-    reloadBtn.addEventListener('click', async () => {
-      setStatus('Recargando mesas.json ...');
-      await loadMesas();
-      // re-dibujar debug/indicador si svg ya cargado
-      if (svgObj.contentDocument && svgObj.contentDocument.documentElement) {
-        const svg = svgObj.contentDocument.documentElement;
-        // limpiar debug y re-dibujar
-        const dbg = svg.getElementById('debug-layer');
-        if (dbg) dbg.remove();
-        if (debugOn) drawDebug(svg);
-        // si había ?mesa=... volver a seleccionar
+        // debug y selección inicial
+        drawDebug();
         if (rawMesaParam) {
-          const parsed = parseInt(rawMesaParam, 10);
-          if (!isNaN(parsed)) selectMesaByNumber(svg, parsed);
+          const p = parseInt(rawMesaParam, 10);
+          if (!isNaN(p)) selectMesaByNumber(p);
+          else setStatus('Parámetro ?mesa inválido.', 'error');
+        } else {
+          setStatus('No se especificó ?mesa — usa ?mesa=05', 'warn');
         }
+
+        attachSvgInteractions();
+      } catch (e) {
+        console.error('Error init SVG:', e);
+        setStatus('Ocurrió un error al inicializar el mapa SVG.', 'error');
       }
-    });
+    }
 
-    // iniciar
-    init();
+    svgObj.addEventListener('load', onSvgLoad);
+    // por si ya está cargado
+    try {
+      if (svgObj.contentDocument && svgObj.contentDocument.readyState === 'complete') onSvgLoad();
+    } catch(e){}
+  }
 
-    // accesibilidad: tecla "m" muestra mensaje rápido (demo)
-    window.addEventListener('keydown', (ev) => {
-      if (ev.key === 'm') setStatus('Presionaste "m" — mapa listo.');
-    });
+  // botones
+  copyBtn.addEventListener('click', () => {
+    const url = location.href;
+    navigator.clipboard?.writeText(url).then(()=> setStatus('URL copiada al portapapeles.')).catch(()=> prompt('Copia esta URL:', url));
+  });
 
-  })();
-  </script>
+  reloadBtn.addEventListener('click', async () => {
+    setStatus('Recargando mesas.json ...');
+    await loadMesas();
+    if (svgObj.contentDocument && svgObj.contentDocument.documentElement) {
+      svgDoc = svgObj.contentDocument;
+      svgRoot = svgDoc.documentElement;
+      // limpiar debug y re-dibujar
+      const dbg = svgDoc.getElementById('debug-layer');
+      if (dbg) dbg.remove();
+      if (debugOn) drawDebug();
+      if (rawMesaParam) {
+        const p = parseInt(rawMesaParam, 10);
+        if (!isNaN(p)) selectMesaByNumber(p);
+      }
+    }
+  });
+
+  // start
+  init();
+
+})();
+</script>
 </body>
 </html>
