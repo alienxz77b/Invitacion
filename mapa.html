@@ -25,7 +25,6 @@
   .mensaje.error{border-left:4px solid #f1a1c9;color:#6a2b3f}
   .btn{background:linear-gradient(180deg,var(--accent),var(--accent-2));color:#fff;border:none;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600}
   .btn.ghost{background:transparent;color:var(--muted);border:1px solid rgba(120,70,90,0.06);box-shadow:none}
-  footer{margin-top:10px;color:var(--muted);font-size:0.85rem;text-align:center}
   @media(max-width:640px){header h1{font-size:1.05rem}.mensaje{font-size:0.9rem}}
 </style>
 </head>
@@ -34,9 +33,8 @@
     <header>
       <div>
         <h1>Mapa de mesas — Invitación</h1>
-        <p style="margin:0;color:var(--muted)">Usa <code>?mesa=05</code> o <code>?mesa=5</code>. Añade <code>&debug=1</code> para rejilla.</p>
       </div>
-      <div style="color:var(--muted)">Indicador: círculo rosa</div>
+      <div style="color:var(--muted)"></div>
     </header>
 
     <main class="map-card" role="main">
@@ -52,15 +50,7 @@
         <!-- mapa.svg debe estar en la misma carpeta -->
         <object id="svgMap" data="mapa.svg" type="image/svg+xml" aria-label="Mapa de mesas"></object>
       </div>
-
-      <div style="margin-top:8px;color:var(--muted);font-size:0.95rem">
-        Haz clic para seleccionar la mesa; doble clic para copiar enlace de la mesa seleccionada.
-      </div>
     </main>
-
-    <footer>
-      Diseño: paleta rosa pastel • Indicador: círculo animado (r ≈ 100px)
-    </footer>
   </div>
 
 <script>
@@ -112,11 +102,34 @@
   let svgDoc = null;
   let svgRoot = null;
 
-  // estilos que inyectaremos dentro del SVG
+  /* ----------------------
+     SVG inner styles
+     - importante: transform-box: fill-box para que el scale ocurra alrededor del centro del elemento
+  -----------------------*/
   const svgInnerStyles = `
-    #indicator { fill: rgba(255,138,179,0.18); stroke: #ff8ab3; stroke-width: 6; filter: drop-shadow(0 8px 22px rgba(185,95,135,0.17)); transform-origin: center; animation: pulse 1200ms ease-in-out infinite; }
-    #indicator-label { font-family: Inter, system-ui, sans-serif; font-size: 18px; font-weight:700; fill:#4a2431; text-anchor:middle; pointer-events:none; }
-    @keyframes pulse { 0% { transform: scale(1); opacity: 1 } 50% { transform: scale(1.25); opacity:0.48 } 100% { transform: scale(1); opacity:1 } }
+    #indicator {
+      fill: rgba(255,138,179,0.18);
+      stroke: #ff8ab3;
+      stroke-width: 6;
+      filter: drop-shadow(0 8px 22px rgba(185,95,135,0.17));
+      transform-box: fill-box;      /* crucial: origen de transformación = caja del elemento */
+      transform-origin: center center;
+      animation: pulse 1200ms ease-in-out infinite;
+      vector-effect: non-scaling-stroke;
+    }
+    #indicator-label {
+      font-family: Inter, system-ui, sans-serif;
+      font-size: 18px;
+      font-weight:700;
+      fill:#4a2431;
+      text-anchor:middle;
+      pointer-events:none;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.25); opacity:0.48; }
+      100% { transform: scale(1); opacity:1; }
+    }
     .debug-grid line { stroke: rgba(90,60,82,0.06); stroke-width:1; }
     .debug-label { font-size:10px; fill: rgba(60,40,60,0.45); }
   `;
@@ -124,7 +137,6 @@
   // Crea/inyecta indicador en el SVG usando svgDoc para crear nodos
   function ensureIndicator() {
     if (!svgDoc || !svgRoot) return null;
-    // doc-level lookup/creation
     let ind = svgDoc.getElementById('indicator');
     if (ind) return ind;
 
@@ -136,7 +148,6 @@
       svgRoot.appendChild(styleEl);
     }
 
-    // crear grupo indicador
     const g = svgDoc.createElementNS(SVG_NS, 'g');
     g.setAttribute('id','indicator-group');
     g.setAttribute('aria-hidden','false');
@@ -221,7 +232,6 @@
 
   function drawDebug() {
     if (!debugOn || !svgDoc || !svgRoot) return;
-    // limpiar capa anterior
     const prev = svgDoc.getElementById('debug-layer');
     if (prev) prev.remove();
 
@@ -332,7 +342,7 @@
           if (!isNaN(p)) selectMesaByNumber(p);
           else setStatus('Parámetro ?mesa inválido.', 'error');
         } else {
-          setStatus('No se especificó ?mesa — usa ?mesa=05', 'warn');
+          setStatus('No se especificó ?mesa.');
         }
 
         attachSvgInteractions();
@@ -343,7 +353,6 @@
     }
 
     svgObj.addEventListener('load', onSvgLoad);
-    // por si ya está cargado
     try {
       if (svgObj.contentDocument && svgObj.contentDocument.readyState === 'complete') onSvgLoad();
     } catch(e){}
@@ -361,7 +370,6 @@
     if (svgObj.contentDocument && svgObj.contentDocument.documentElement) {
       svgDoc = svgObj.contentDocument;
       svgRoot = svgDoc.documentElement;
-      // limpiar debug y re-dibujar
       const dbg = svgDoc.getElementById('debug-layer');
       if (dbg) dbg.remove();
       if (debugOn) drawDebug();
