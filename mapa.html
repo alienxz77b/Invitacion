@@ -3,455 +3,151 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Invitación — Mapa de mesas</title>
+<title>Mapa de mesas</title>
 <style>
   :root{
-    --bg-1: #fff6fb;
-    --bg-2: #fff0f7;
-    --accent: #ff7fbf;         /* rosa pastel vivo para destacar */
+    --accent: #ff7fbf;
     --accent-dark: #d95c98;
-    --table-fill: #ffeef6;     /* color de mesa */
-    --table-stroke: #f4c2d9;
-    --text-muted: #7a5466;
+    --shadow: 0 6px 22px rgba(185,95,135,0.25);
     --debug-grid: rgba(90, 60, 82, 0.06);
-    --glass: rgba(255,255,255,0.7);
-    --shadow: 0 8px 30px rgba(133,77,108,0.09);
-    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
   }
-
-  html,body{height:100%;margin:0;background: linear-gradient(180deg,var(--bg-1),var(--bg-2));color:#412433}
-  .page {
-    max-width: 1150px;
-    margin: 18px auto;
-    padding: 12px;
-  }
-
-  header{
-    display:flex;
-    gap:12px;
-    align-items:center;
-    justify-content:space-between;
-    flex-wrap:wrap;
-    margin-bottom:10px;
-  }
-  header h1{
+  body{
     margin:0;
-    font-size:1.25rem;
-    letter-spacing:0.4px;
+    font-family: system-ui, sans-serif;
+    background: linear-gradient(180deg,#fff6fb,#fff0f7);
+    color:#3d2b3a;
+    text-align:center;
   }
-  header p{margin:0;color:var(--text-muted);font-size:0.95rem}
-
-  /* contenedor del mapa */
-  .map-wrap{
-    background: var(--glass);
-    border-radius: 14px;
-    padding: 12px;
-    box-shadow: var(--shadow);
+  header{
+    padding:12px 0 4px 0;
   }
-  /* SVG responsive */
-  svg#mapa {
-    display:block;
+  svg{
     width:100%;
     height:auto;
-    border-radius: 8px;
-    background: linear-gradient(180deg, rgba(255,250,253,0.9), rgba(255,245,249,0.95));
-    overflow:visible;
+    max-width:1056px;
+    display:block;
+    margin:auto;
+    position:relative;
+  }
+  #indicador{
+    fill:none;
+    stroke:var(--accent);
+    stroke-width:4;
+    filter: drop-shadow(0 0 6px var(--accent-dark));
+    transform-origin:center;
+    animation: pulse 1s infinite;
+  }
+  @keyframes pulse {
+    0% { transform: scale(1); opacity:1; }
+    50% { transform: scale(1.3); opacity:0.5; }
+    100% { transform: scale(1); opacity:1; }
   }
 
-  /* mesas */
-  .mesa { cursor:pointer; transition: transform .16s ease, filter .12s ease; }
-  .mesa .mesa-circle {
-    fill: var(--table-fill);
-    stroke: var(--table-stroke);
-    stroke-width: 4;
-    transition: transform .18s ease, stroke .18s ease, filter .18s ease;
-    transform-box: fill-box; /* importante para transform-origin en SVG */
-    transform-origin: center;
-  }
-  .mesa text {
-    font-weight: 700;
-    font-size: 18px;
-    fill: #6a3c4f;
-    text-anchor: middle;
-    dominant-baseline: middle;
-    pointer-events: none;
-  }
-
-  /* mesa seleccionada */
-  .mesa.selected .mesa-circle {
-    fill: var(--accent);
-    stroke: var(--accent-dark);
-    filter: drop-shadow(0 6px 18px rgba(185,95,135,0.25));
-    animation: heartbeat 1.05s infinite;
-  }
-  @keyframes heartbeat {
-    0%   { transform: scale(1); }
-    25%  { transform: scale(1.06); }
-    50%  { transform: scale(0.985); }
-    75%  { transform: scale(1.03); }
-    100% { transform: scale(1); }
-  }
-
-  /* mensajes y ayuda */
-  .mensajes {
-    margin-top: 8px;
-    display:flex;
-    gap:8px;
-    align-items:center;
-    flex-wrap:wrap;
-  }
   .mensaje {
-    background: white;
-    border-radius: 10px;
-    padding: 8px 12px;
-    box-shadow: 0 4px 18px rgba(115,70,95,0.06);
-    color: #3d2e33;
-    font-size: 0.95rem;
+    margin:10px auto;
+    display:inline-block;
+    background:white;
+    padding:8px 14px;
+    border-radius:10px;
+    box-shadow:0 4px 18px rgba(115,70,95,0.06);
   }
-  .mensaje.warn { border-left: 4px solid #f1b1d3; }
-  .mensaje.error { border-left: 4px solid #e07aa7; color:#6a2b3f; }
-  .mensaje.ok { border-left: 4px solid #ffc0df; }
 
-  /* debug */
-  .debug-badge {
-    font-size:0.85rem;
-    padding:4px 8px;
-    border-radius:8px;
-    background:rgba(255,255,255,0.6);
-    color:#7b3a55;
-    border: 1px dashed rgba(123,58,84,0.06);
-  }
-  .grid-line {
+  .debug-grid line {
     stroke: var(--debug-grid);
     stroke-width: 1;
   }
   .coord-label {
-    font-size: 10px;
-    fill: rgba(60,40,60,0.45);
-  }
-
-  /* pequeño footer/leyenda */
-  .leyenda {
-    margin-top:10px;
-    color:var(--text-muted);
-    font-size:0.9rem;
-  }
-
-  /* adaptaciones para móviles */
-  @media (max-width:640px){
-    header{gap:6px}
-    .mensaje{font-size:0.88rem;padding:6px 8px}
-    .mesa text{font-size:14px}
+    font-size:10px;
+    fill:rgba(60,40,60,0.45);
   }
 </style>
 </head>
 <body>
-  <div class="page">
-    <header>
-      <div>
-        <h1>Mapa de mesas — Invitación</h1>
-        <p>Escanea el QR, abre esta página y verás tu mesa resaltada. Usa <code>?mesa=05</code> (dos dígitos preferible).</p>
-      </div>
-      <div class="debug-badge" id="dbgBadge" style="display:none">DEBUG</div>
-    </header>
+<header>
+  <h1>Mapa de mesas</h1>
+  <p>Ejemplo: <code>?mesa=05</code> — añade <code>?debug=1</code> para ver la rejilla.</p>
+</header>
 
-    <div class="map-wrap" role="region" aria-label="Mapa de mesas">
-      <!-- SVG de 1056x816: las mesas se dibujan por JS en el grupo #mesasGroup -->
-      <svg id="mapa" viewBox="0 0 1056 816" width="1056" height="816" xmlns="http://www.w3.org/2000/svg" aria-labelledby="mapTitle mapDesc" role="img" preserveAspectRatio="xMidYMid meet">
-        <title id="mapTitle">Mapa de mesas</title>
-        <desc id="mapDesc">Plano con 20 mesas numeradas. La mesa seleccionada late y se resalta.</desc>
+<!-- el SVG real con las mesas ya dibujadas -->
+<object id="svgMap" data="mapa.svg" type="image/svg+xml"></object>
 
-        <!-- decorativos: fondo suave -->
-        <rect x="0" y="0" width="1056" height="816" rx="10" ry="10" fill="transparent"></rect>
+<div id="mensaje" class="mensaje">Cargando mapa...</div>
 
-        <!-- grid (poblado por JS en modo debug) -->
-        <g id="gridGroup" aria-hidden="true"></g>
-
-        <!-- aquí se colocan las mesas -->
-        <g id="mesasGroup" />
-      </svg>
-
-      <div class="mensajes" aria-live="polite" aria-atomic="true">
-        <div id="mensaje" class="mensaje">Cargando mapa...</div>
-      </div>
-
-      <div class="leyenda">
-        <strong>Nota:</strong> Si la página no encuentra tu mesa se mostrará un mensaje. Al hacer click en una mesa se selecciona y la URL se actualiza.
-      </div>
-    </div>
-  </div>
-
-  <!-- DATOS embebidos (fallback) - si implementas mesas.json externo, se intentará cargar con fetch() y si falla se usa este contenido -->
-  <script id="mesas-json" type="application/json">
-  {
-    "mesas": [
-      {"number":"01","x":80,"y":80,"r":48,"seats":8},
-      {"number":"02","x":379,"y":80,"r":48,"seats":8},
-      {"number":"03","x":677,"y":80,"r":48,"seats":8},
-      {"number":"04","x":975,"y":80,"r":48,"seats":8},
-      {"number":"05","x":80,"y":244,"r":48,"seats":8},
-      {"number":"06","x":379,"y":244,"r":48,"seats":8},
-      {"number":"07","x":677,"y":244,"r":48,"seats":8},
-      {"number":"08","x":975,"y":244,"r":48,"seats":8},
-      {"number":"09","x":80,"y":408,"r":48,"seats":8},
-      {"number":"10","x":379,"y":408,"r":48,"seats":8},
-      {"number":"11","x":677,"y":408,"r":48,"seats":8},
-      {"number":"12","x":975,"y":408,"r":48,"seats":8},
-      {"number":"13","x":80,"y":572,"r":48,"seats":8},
-      {"number":"14","x":379,"y":572,"r":48,"seats":8},
-      {"number":"15","x":677,"y":572,"r":48,"seats":8},
-      {"number":"16","x":975,"y":572,"r":48,"seats":8},
-      {"number":"17","x":80,"y":736,"r":48,"seats":8},
-      {"number":"18","x":379,"y":736,"r":48,"seats":8},
-      {"number":"19","x":677,"y":736,"r":48,"seats":8},
-      {"number":"20","x":975,"y":736,"r":48,"seats":8}
-    ]
+<script>
+(async ()=>{
+  const getParam = p => new URLSearchParams(location.search).get(p);
+  const mesaParam = getParam("mesa");
+  const debug = getParam("debug")==="1";
+  const msg = (t,c="")=>{
+    const el=document.getElementById("mensaje");
+    el.textContent=t;
+    el.className="mensaje "+c;
   }
-  </script>
 
-  <script>
-  (function(){
-    // Namespace SVG
-    const SVG_NS = "http://www.w3.org/2000/svg";
+  let mesas=[];
+  try{
+    const r=await fetch("mesas.json",{cache:"no-store"});
+    mesas=await r.json();
+  }catch(e){
+    msg("Error cargando mesas.json","error");
+    return;
+  }
 
-    /* ---------- helpers ---------- */
-    const qs = (s) => new URLSearchParams(location.search).get(s);
-    const pad2 = n => String(n).padStart(2,'0');
-    const showMessage = (txt, kind='') => {
-      const el = document.getElementById('mensaje');
-      el.textContent = txt;
-      el.className = 'mensaje' + (kind ? ' ' + kind : '');
-    };
-    const parseMesaParam = (raw) => {
-      if (!raw) return null;
-      // permitir "5", "05", "005" -> map to "05", pero si usuario pasa "105" devolvemos "105" (se valida después)
-      const n = parseInt(raw,10);
-      if (isNaN(n)) return null;
-      return pad2(n % 1000); // two-digit padding, but keeps values >99 as-is padded to 3 digits then trimmed; still comparison will check string equality
-    };
+  const svgObj=document.getElementById("svgMap");
+  svgObj.addEventListener("load",()=>{
+    const svgDoc=svgObj.contentDocument;
+    const root=svgDoc.documentElement;
 
-    /* ---------- cargar datos: intenta fetch('mesas.json') y si falla usa el JSON embebido ---------- */
-    async function loadMesas(){
-      // intenta cargar un archivo externo mesas.json en la misma carpeta (compatibilidad)
-      try {
-        const resp = await fetch(new URL('mesas.json', location.href), {cache: 'no-store'});
-        if (!resp.ok) throw new Error('HTTP ' + resp.status);
-        const json = await resp.json();
-        showMessage('Mapa cargado (datos desde mesas.json).', 'ok');
-        return json.mesas || json;
-      } catch (err) {
-        // fallback al JSON embebido
-        try {
-          const embedded = document.getElementById('mesas-json').textContent;
-          const parsed = JSON.parse(embedded);
-          showMessage('Usando datos internos (no se encontró mesas.json o la carga falló).', 'warn');
-          return parsed.mesas || parsed;
-        } catch (err2) {
-          showMessage('Error: no se pudieron obtener los datos de mesas.', 'error');
-          console.error('Error cargando mesas:', err, err2);
-          return [];
-        }
-      }
-    }
-
-    /* ---------- dibujar el mapa ---------- */
-    function drawMesas(mesas, options = {}) {
-      const svg = document.getElementById('mapa');
-      const group = document.getElementById('mesasGroup');
-      // limpiar
-      while (group.firstChild) group.removeChild(group.firstChild);
-
-      mesas.forEach(m => {
-        const g = document.createElementNS(SVG_NS, 'g');
-        g.setAttribute('class','mesa');
-        g.setAttribute('data-mesa', m.number);
-        g.setAttribute('id','mesa-'+m.number);
-
-        // círculo (mesa)
-        const c = document.createElementNS(SVG_NS, 'circle');
-        c.setAttribute('class','mesa-circle');
-        c.setAttribute('cx', m.x);
-        c.setAttribute('cy', m.y);
-        c.setAttribute('r', m.r || 40);
-
-        // texto (número)
-        const t = document.createElementNS(SVG_NS, 'text');
-        t.setAttribute('x', m.x);
-        t.setAttribute('y', m.y);
-        t.textContent = m.number;
-
-        // título accesible
-        const title = document.createElementNS(SVG_NS, 'title');
-        title.textContent = `Mesa ${m.number} — ${m.seats ?? 'N/A'} lugares`;
-
-        g.appendChild(title);
-        g.appendChild(c);
-        g.appendChild(t);
-
-        // click: seleccionar y actualizar URL
-        g.addEventListener('click', () => {
-          selectMesa(m.number, {fromUser:true});
-        });
-
-        group.appendChild(g);
-      });
-    }
-
-    /* ---------- seleccionar una mesa (visual + actualizar URL) ---------- */
-    function selectMesa(targetNumber, opts = {}) {
-      const mesasEls = document.querySelectorAll('#mesasGroup .mesa');
-      let found = null;
-      mesasEls.forEach(g => {
-        if (g.dataset.mesa === targetNumber) {
-          g.classList.add('selected');
-          found = g;
-        } else {
-          g.classList.remove('selected');
-        }
-      });
-
-      if (!found) {
-        showMessage(`La mesa ${targetNumber} no existe en este plano.`, 'error');
-        return;
-      }
-
-      showMessage(`Mesa ${targetNumber} seleccionada. ¡Felicidades!`, 'ok');
-
-      // centrar / scrollear suavemente al elemento (útil en móviles)
-      try {
-        const bbox = found.getBoundingClientRect();
-        // scrollear de la página para que la mesa quede bien visible
-        window.scrollTo({ top: Math.max(0, window.scrollY + bbox.top - (window.innerHeight/2) + (bbox.height/2)), behavior: 'smooth' });
-      } catch(e){/* ignore */}
-
-      // actualizar URL (preservando ?debug)
-      const params = new URLSearchParams(location.search);
-      params.set('mesa', String(parseInt(targetNumber,10))); // poner número sin ceros forzados en URL
-      const newUrl = location.pathname + '?' + params.toString();
-      if (!opts.fromUser) {
-        history.replaceState(null, '', newUrl);
-      } else {
-        // si lo hizo el usuario al clicar, usamos replaceState también (no queremos histórico largo)
-        history.replaceState(null, '', newUrl);
-      }
-    }
-
-    /* ---------- dibujar rejilla y coordenadas en modo debug ---------- */
-    function drawDebug(mesas) {
-      const dbg = qs('debug') === '1';
-      const dbgBadge = document.getElementById('dbgBadge');
-      const gridG = document.getElementById('gridGroup');
-      while (gridG.firstChild) gridG.removeChild(gridG.firstChild);
-
-      if (!dbg) {
-        dbgBadge.style.display = 'none';
-        return;
-      }
-      dbgBadge.style.display = 'inline-block';
-      showMessage('Modo debug activado — se muestra rejilla y coordenadas.', 'warn');
-
-      const svg = document.getElementById('mapa');
-      const viewBox = svg.viewBox.baseVal;
-      const gridSize = 48;
-
-      // lineas verticales
-      for (let x = 0; x <= viewBox.width; x += gridSize) {
-        const ln = document.createElementNS(SVG_NS,'line');
-        ln.setAttribute('x1', x);
-        ln.setAttribute('y1', 0);
-        ln.setAttribute('x2', x);
-        ln.setAttribute('y2', viewBox.height);
-        ln.setAttribute('class','grid-line');
+    if(debug){
+      // dibuja rejilla
+      const gridG=svgDoc.createElementNS("http://www.w3.org/2000/svg","g");
+      gridG.setAttribute("class","debug-grid");
+      for(let x=0;x<=1056;x+=48){
+        const ln=svgDoc.createElementNS("http://www.w3.org/2000/svg","line");
+        ln.setAttribute("x1",x);ln.setAttribute("x2",x);
+        ln.setAttribute("y1",0);ln.setAttribute("y2",816);
         gridG.appendChild(ln);
       }
-      // lineas horizontales
-      for (let y = 0; y <= viewBox.height; y += gridSize) {
-        const ln = document.createElementNS(SVG_NS,'line');
-        ln.setAttribute('x1', 0);
-        ln.setAttribute('y1', y);
-        ln.setAttribute('x2', viewBox.width);
-        ln.setAttribute('y2', y);
-        ln.setAttribute('class','grid-line');
+      for(let y=0;y<=816;y+=48){
+        const ln=svgDoc.createElementNS("http://www.w3.org/2000/svg","line");
+        ln.setAttribute("x1",0);ln.setAttribute("x2",1056);
+        ln.setAttribute("y1",y);ln.setAttribute("y2",y);
         gridG.appendChild(ln);
       }
-
-      // coordenadas cerca de cada mesa
-      mesas.forEach(m => {
-        const txt = document.createElementNS(SVG_NS,'text');
-        txt.setAttribute('x', m.x + (m.r ? m.r + 8 : 56));
-        txt.setAttribute('y', m.y - (m.r ? m.r + 8 : 56));
-        txt.setAttribute('class','coord-label');
-        txt.textContent = `${m.number} (${m.x},${m.y})`;
-        gridG.appendChild(txt);
+      mesas.forEach(m=>{
+        const t=svgDoc.createElementNS("http://www.w3.org/2000/svg","text");
+        t.setAttribute("x",m.x+10);
+        t.setAttribute("y",m.y-10);
+        t.setAttribute("class","coord-label");
+        t.textContent=`${m.numero} (${m.x},${m.y})`;
+        gridG.appendChild(t);
       });
+      root.appendChild(gridG);
+      msg("Modo debug activado");
     }
 
-    /* ---------- arranque principal ---------- */
-    async function main(){
-      // obtener param mesa y debug
-      const rawMesa = qs('mesa');
-      const mesaParam = parseMesaParam(rawMesa);
-      const debugOn = qs('debug') === '1';
-
-      // cargar mesas (fetch -> fallback embebido)
-      const mesas = await loadMesas();
-
-      if (!mesas || mesas.length === 0) {
-        showMessage('No hay datos de mesas para mostrar.', 'error');
-        return;
-      }
-
-      // dibujar mesas
-      drawMesas(mesas);
-
-      // dibujar debug si aplica
-      if (debugOn) drawDebug(mesas);
-
-      // si hubo parámetro de mesa, seleccionarlo
-      if (!rawMesa) {
-        showMessage('No se especificó el parámetro ?mesa=###. Ejemplo: ?mesa=05', 'warn');
-      } else {
-        // normalizar: si usuario puso 5 -> '05'
-        const normalized = (parseInt(rawMesa,10) < 100) ? pad2(parseInt(rawMesa,10)) : String(rawMesa);
-        // buscar si existe
-        const exists = mesas.some(m => m.number === normalized || m.number === String(parseInt(rawMesa,10)).padStart(2,'0') || m.number === rawMesa);
-        if (!exists) {
-          showMessage(`La mesa "${rawMesa}" no existe. Revisa el número (ej. ?mesa=05).`, 'error');
-        } else {
-          // preferimos la versión en dos dígitos en pantalla
-          const target = mesas.find(m => m.number === normalized) ? normalized : rawMesa;
-          selectMesa(target, {fromUser:false});
-        }
-      }
-
-      // permitir click derecho/clic en mesa: mostrar info breve (ayuda)
-      document.querySelectorAll('#mesasGroup .mesa').forEach(g => {
-        g.addEventListener('contextmenu', (ev) => {
-          ev.preventDefault();
-          const num = g.dataset.mesa;
-          const cx = g.querySelector('circle').getAttribute('cx');
-          const cy = g.querySelector('circle').getAttribute('cy');
-          showMessage(`Mesa ${num} — coordenadas: ${cx}, ${cy}`, 'ok');
-        });
-        // doble click: copiar enlace con parámetro ?mesa=
-        g.addEventListener('dblclick', () => {
-          const num = g.dataset.mesa;
-          const params = new URLSearchParams(location.search);
-          params.set('mesa', num);
-          const url = location.origin + location.pathname + '?' + params.toString();
-          navigator.clipboard?.writeText(url).then(()=> {
-            showMessage('Enlace copiado al portapapeles: ' + url, 'ok');
-          }).catch(() => {
-            showMessage('No se pudo copiar automáticamente. URL: ' + url, 'ok');
-          });
-        });
-      });
+    if(!mesaParam){
+      msg("No se especificó mesa (?mesa=##)");
+      return;
+    }
+    const mesaNum=parseInt(mesaParam,10);
+    const mesa=mesas.find(m=>parseInt(m.numero,10)===mesaNum);
+    if(!mesa){
+      msg(`La mesa ${mesaParam} no existe`);
+      return;
     }
 
-    // ejecutar
-    main();
+    // dibuja el indicador sobre la mesa
+    const indic=svgDoc.createElementNS("http://www.w3.org/2000/svg","circle");
+    indic.setAttribute("id","indicador");
+    indic.setAttribute("cx",mesa.x);
+    indic.setAttribute("cy",mesa.y);
+    indic.setAttribute("r",mesa.r || 50);
+    root.appendChild(indic);
 
-  })();
-  </script>
+    msg(`Mesa ${mesa.numero} localizada 🎉`);
+  });
+})();
+</script>
 </body>
 </html>
