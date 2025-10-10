@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Encuentra tu mesa asignada</title>
+  <style>
+    * { box-sizing: border-box; }
+    html,body { height: 100%; }
+    body {
+      background-color: #ffe6f0;
+      font-family: Georgia, serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .contenedor {
+      background: white;
+      padding: 30px 20px;
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      border: 3px solid #f8c6d8;
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+      animation: fadeIn 0.35s ease;
+    }
+    @keyframes fadeIn { from { opacity:0; transform:scale(.98)} to {opacity:1; transform:none} }
+    h2 { margin-top:0; font-size:1.5em; color:#cc2e72; }
+    p { color:#5e3d4f; margin-bottom:8px; }
+    .campo { position: relative; }
+    input {
+      padding:12px; font-size:1em; width:100%; border-radius:10px; border:1px solid #ccc; margin-bottom:10px;
+    }
+    input:focus { outline:3px solid rgba(204,46,114,0.18); }
+    ul { list-style:none; padding:0; margin:5px 0 0; max-height:180px; overflow-y:auto; border:1px solid #ccc; border-radius:10px; background: white; display:none; }
+    ul.mostrar { display:block; }
+    li { padding:10px; cursor:pointer; transition:background-color .15s; }
+    li:hover, li:focus { background-color: #f0cadd; outline:none; }
+    li.seleccionado { background-color:#cc2e72; color:white; }
+    button { padding:12px 20px; background:#cc2e72; color:white; border:none; border-radius:10px; font-size:1em; cursor:pointer; margin-top:15px; width:100%; }
+    button[disabled] { opacity:.6; cursor:not-allowed; }
+    #infoSeleccion { text-align:left; font-size:0.95em; color:#5e3d4f; margin-top:8px; display:none; }
+    @media (max-width:480px) {
+      body { padding:10px; align-items:flex-start; }
+      .contenedor { padding:20px; margin-top:20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="contenedor" role="region" aria-labelledby="titulo">
+    <h2 id="titulo">🎀 Búsqueda de Mesa</h2>
+    <p>Escribe tu nombre para buscar tu mesa</p>
+
+    <div class="campo">
+      <label for="nombreInput" class="sr-only">Nombre completo</label>
+      <input id="nombreInput" type="text" placeholder="Tu nombre completo" autocomplete="off" aria-label="Nombre completo" />
+      <ul id="sugerencias" role="listbox" aria-expanded="false"></ul>
+    </div>
+
+    <button id="confirmarBtn" type="button" disabled>Cargando lista…</button>
+    <div id="infoSeleccion" aria-live="polite"></div>
+  </div>
+
+  <script>
+    // Tus datos originales (no se tocan)
+    const spreadsheetId = "1LKsB3nXQ8NqosmyuoiLTRxUrrQzsXAnf2hVlIxoiYQI";
+    const apiKey = "AIzaSyC916C1gjId46ClbCpxNaLRkPITQVKkF5E";
+    const backendConfirmURL = "https://alienxz77b.github.io/Invitacion/mapa.html";
+
+    let invitados = [];
+    let seleccionado = null;
+    let currentSuggestions = [];
+
+    const inputEl = document.getElementById("nombreInput");
+    const ulEl = document.getElementById("sugerencias");
+    const btnEl = document.getElementById("confirmarBtn");
+    const infoEl = document.getElementById("infoSeleccion");
+
+    function normalizar(texto){
+      if(!texto) return "";
+      return texto.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+    }
+
+    async function cargarInvitados() {
+      const range = "Invitados!A2:G";
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`;
+      try {
+        const res = await fetch(url);
+        if(!res.ok) throw new Error("Error HTTP "+res.status);
+        const data = await res.json();
+        if (data.values) {
+          invitados = data.values.map(row => ({
+            codigo: row[0],
+            nombre: row[1],
+            adultos: row[2],
+            ninos: row[3],
+            mesa: row[5],
+            confirmado: row[6]
+          }));
+          btnEl.disabled = false;
+          btnEl.textContent = "Buscar mesa";
+        } else {
+          alert("No se pudo cargar la lista.");
+        }
+      } catch (e) {
+        alert("Error al cargar invitados.");
+        console.error(e);
+      }
+    }
+
+    function mostrarInfo(inv){
+      if(!inv){ infoEl.style.display="none"; infoEl.textContent=""; return; }
+      infoEl.style.display="block";
+      infoEl.innerHTML = `<strong>${inv.nombre}</strong><br>Mesa: ${inv.mesa||"-"} • Adultos: ${inv.adultos||"-"} • Niños: ${inv.ninos||"-"}`;
+    }
+
+    function renderSuggestions(lista){
+      ulEl.innerHTML = "";
+      currentSuggestions = lista;
+      if(lista.length===0){ ulEl.classList.remove("mostrar"); return; }
+      if(lista.length===1){
+        seleccionado = lista[0];
+        inputEl.value = seleccionado.nombre;
+        mostrarInfo(seleccionado);
+        ulEl.classList.remove("mostrar");
+        return;
+      }
+      lista.forEach((inv, idx)=>{
+        const li=document.createElement("li");
+        li.role="option";
+        li.textContent=inv.nombre;
+        li.onclick=()=>{ seleccionado=inv; inputEl.value=inv.nombre; mostrarInfo(inv); ulEl.classList.remove("mostrar"); };
+        ulEl.appendChild(li);
+      });
+      ulEl.classList.add("mostrar");
+    }
+
+    function confirmarAsistencia(){
+      if(seleccionado){
+        if(confirm(`¿Ver la mesa de ${seleccionado.nombre}?`)){
+          window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(seleccionado.codigo)}`;
+        }
+        return;
+      }
+      const q=inputEl.value.trim();
+      if(!q){ alert("Escribe un nombre para buscar."); return; }
+      const matches = invitados.filter(i=>normalizar(i.nombre).includes(normalizar(q)));
+      if(matches.length===0){ alert("No se encontró ningún invitado con ese nombre."); return; }
+      renderSuggestions(matches);
+    }
+
+    // Eventos
+    btnEl.addEventListener("click", confirmarAsistencia);
+    inputEl.addEventListener("keydown", e=>{
+      if(e.key==="Enter"){ e.preventDefault(); confirmarAsistencia(); }
+    });
+
+    // Cargar lista
+    window.onload = cargarInvitados;
+  </script>
+</body>
+</html>
+
