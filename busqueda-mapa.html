@@ -58,6 +58,12 @@
       text-align:left; font-size:0.95em; color:#5e3d4f;
       margin-top:8px; display:none;
     }
+    .mensaje-error {
+      color: #cc2e72;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 8px;
+    }
     @media (max-width:480px) {
       body { padding:10px; align-items:flex-start; }
       .contenedor { padding:20px; margin-top:20px; }
@@ -133,6 +139,15 @@
       return estado.seleccionado && estado.seleccionado.codigo;
     }
 
+    /**
+     * Muestra un mensaje de error en el área de información
+     * @param {string} mensaje - Mensaje de error a mostrar
+     */
+    function mostrarMensajeError(mensaje) {
+      elementos.info.style.display = "block";
+      elementos.info.innerHTML = `<div class="mensaje-error">${mensaje}</div>`;
+    }
+
     // =============================================================================
     // FUNCIONES PRINCIPALES
     // =============================================================================
@@ -172,7 +187,7 @@
       } catch (error) {
         console.error("❌ Error al cargar invitados:", error);
         elementos.boton.textContent = "Error al cargar";
-        alert("No se pudo cargar la lista de invitados. Intenta más tarde.");
+        mostrarMensajeError("No se pudo cargar la lista de invitados. Intenta más tarde.");
       }
     }
 
@@ -249,7 +264,7 @@
       const consulta = elementos.input.value.trim();
 
       if (!consulta) {
-        alert("Por favor, escribe tu nombre para buscar tu mesa.");
+        mostrarMensajeError("Por favor, escribe tu nombre para buscar tu mesa.");
         return;
       }
 
@@ -258,7 +273,7 @@
       );
 
       if (coincidencias.length === 0) {
-        alert("No se encontró ningún invitado con ese nombre. Verifica la ortografía.");
+        mostrarMensajeError("Invitado no encontrado");
         return;
       }
 
@@ -279,10 +294,10 @@
     function manejarBusquedaEnTiempoReal() {
       const consulta = elementos.input.value.trim();
       estado.seleccionado = null;
-      mostrarInformacionInvitado(null);
 
       if (consulta.length < 2) {
         elementos.sugerencias.classList.remove("mostrar");
+        mostrarInformacionInvitado(null);
         return;
       }
 
@@ -290,7 +305,13 @@
         normalizarTexto(invitado.nombre).includes(normalizarTexto(consulta))
       );
 
-      renderizarSugerencias(coincidencias);
+      if (coincidencias.length === 0) {
+        elementos.sugerencias.classList.remove("mostrar");
+        mostrarMensajeError("Invitado no encontrado");
+      } else {
+        mostrarInformacionInvitado(null);
+        renderizarSugerencias(coincidencias);
+      }
     }
 
     // =============================================================================
@@ -340,3 +361,4 @@
   </script>
 </body>
 </html>
+
