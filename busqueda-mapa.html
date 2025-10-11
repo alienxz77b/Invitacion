@@ -103,6 +103,29 @@
           }));
           btnEl.disabled = false;
           btnEl.textContent = "Buscar mesa";
+
+          // Agregar evento de input para búsqueda en tiempo real
+          inputEl.addEventListener("input", function(e) {
+            const query = e.target.value.trim();
+            if (query.length < 2) {
+              ulEl.classList.remove("mostrar");
+              seleccionado = null;
+              mostrarInfo(null);
+              return;
+            }
+
+            const matches = invitados.filter(i => normalizar(i.nombre).includes(normalizar(query)));
+
+            // MODIFICACIÓN: Si hay una sola coincidencia, redirigir automáticamente
+            if (matches.length === 1) {
+              seleccionado = matches[0];
+              window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(seleccionado.codigo)}`;
+              return;
+            }
+
+            renderSuggestions(matches);
+          });
+
         } else {
           alert("No se pudo cargar la lista.");
         }
@@ -122,18 +145,25 @@
       ulEl.innerHTML = "";
       currentSuggestions = lista;
       if(lista.length===0){ ulEl.classList.remove("mostrar"); return; }
+
+      // MODIFICACIÓN: Si hay una sola coincidencia, redirigir automáticamente
       if(lista.length===1){
         seleccionado = lista[0];
-        inputEl.value = seleccionado.nombre;
-        mostrarInfo(seleccionado);
-        ulEl.classList.remove("mostrar");
+        window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(seleccionado.codigo)}`;
         return;
       }
+
       lista.forEach((inv, idx)=>{
         const li=document.createElement("li");
         li.role="option";
         li.textContent=inv.nombre;
-        li.onclick=()=>{ seleccionado=inv; inputEl.value=inv.nombre; mostrarInfo(inv); ulEl.classList.remove("mostrar"); };
+        li.onclick=()=>{
+          seleccionado=inv;
+          inputEl.value=inv.nombre;
+          mostrarInfo(inv);
+          ulEl.classList.remove("mostrar");
+          window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(seleccionado.codigo)}`;
+        };
         ulEl.appendChild(li);
       });
       ulEl.classList.add("mostrar");
@@ -141,15 +171,21 @@
 
     function confirmarAsistencia(){
       if(seleccionado){
-        if(confirm(`¿Ver la mesa de ${seleccionado.nombre}?`)){
-          window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(seleccionado.codigo)}`;
-        }
+        window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(seleccionado.codigo)}`;
         return;
       }
       const q=inputEl.value.trim();
       if(!q){ alert("Escribe un nombre para buscar."); return; }
       const matches = invitados.filter(i=>normalizar(i.nombre).includes(normalizar(q)));
       if(matches.length===0){ alert("No se encontró ningún invitado con ese nombre."); return; }
+
+      // MODIFICACIÓN: Si hay una sola coincidencia, redirigir automáticamente
+      if(matches.length===1){
+        seleccionado = matches[0];
+        window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(seleccionado.codigo)}`;
+        return;
+      }
+
       renderSuggestions(matches);
     }
 
@@ -164,4 +200,3 @@
   </script>
 </body>
 </html>
-
