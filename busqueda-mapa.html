@@ -101,7 +101,9 @@
     let estado = {
       invitados: [],           // Lista completa de invitados
       seleccionado: null,      // Invitado actualmente seleccionado
-      sugerencias: []          // Lista de sugerencias filtradas
+      sugerencias: [],         // Lista de sugerencias filtradas
+      inputValue: "",          // Último valor conocido del input
+      isDeleting: false        // Bandera para detectar si el usuario está borrando
     };
 
     // =============================================================================
@@ -146,6 +148,26 @@
     function mostrarMensajeError(mensaje) {
       elementos.info.style.display = "block";
       elementos.info.innerHTML = `<div class="mensaje-error">${mensaje}</div>`;
+    }
+
+    /**
+     * Detecta si el usuario está borrando texto
+     * @param {string} nuevoValor - El valor actual del input
+     * @returns {boolean} True si el usuario está borrando
+     */
+    function usuarioEstaBorrando(nuevoValor) {
+      // Si el nuevo valor es más corto que el anterior, probablemente está borrando
+      return nuevoValor.length < estado.inputValue.length;
+    }
+
+    /**
+     * Detecta si el usuario está escribiendo al final del texto
+     * @param {string} nuevoValor - El valor actual del input
+     * @returns {boolean} True si está escribiendo al final
+     */
+    function estaEscribiendoAlFinal(nuevoValor) {
+      const cursorPosition = elementos.input.selectionStart;
+      return cursorPosition === nuevoValor.length;
     }
 
     // =============================================================================
@@ -210,10 +232,33 @@
     }
 
     /**
+     * Encuentra la mejor coincidencia para autocompletar
+     * @param {Array} coincidencias - Lista de invitados que coinciden
+     * @param {string} consulta - Texto buscado
+     * @returns {Object|null} El invitado para autocompletar o null
+     */
+    function encontrarMejorCoincidencia(coincidencias, consulta) {
+      if (coincidencias.length !== 1) return null;
+
+      const invitado = coincidencias[0];
+      const nombreNormalizado = normalizarTexto(invitado.nombre);
+      const consultaNormalizada = normalizarTexto(consulta);
+
+      // Solo autocompletar si la consulta está al inicio del nombre
+      if (nombreNormalizado.startsWith(consultaNormalizada)) {
+        return invitado;
+      }
+
+      return null;
+    }
+
+    /**
      * Renderiza la lista de sugerencias basada en la búsqueda
      * @param {Array} listaSugerencias - Lista de invitados que coinciden
+     * @param {string} consulta - Texto buscado
+     * @param {boolean} permitirAutocompletar - Si se permite autocompletar
      */
-    function renderizarSugerencias(listaSugerencias) {
+    function renderizarSugerencias(listaSugerencias, consulta, permitirAutocompletar = true) {
       elementos.sugerencias.innerHTML = "";
       estado.sugerencias = listaSugerencias;
 
@@ -222,26 +267,51 @@
         return;
       }
 
-      // Si hay una sola coincidencia, seleccionarla automáticamente
-      if (listaSugerencias.length === 1) {
-        estado.seleccionado = listaSugerencias[0];
-        elementos.input.value = estado.seleccionado.nombre;
-        mostrarInformacionInvitado(estado.seleccionado);
-        elementos.sugerencias.classList.remove("mostrar");
-        return;
+      // Autocompletar solo si hay una coincidencia exacta y no estamos borrando
+      if (permitirAutocompletar && !estado.isDeleting) {
+        const mejorCoincidencia = encontrarMejorCoincidencia(listaSugerencias, consulta);
+
+        if (mejorCoincidencia && estaEscribiendoAlFinal(consulta)) {
+          estado.seleccionado = mejorCoincidencia;
+          // No autocompletamos automáticamente, solo mostramos la sugerencia destacada
+        }
       }
 
-      // Crear elementos de lista para múltiples coincidencias
+      // Crear elementos de lista para las coincidencias
       listaSugerencias.forEach(invitado => {
         const elementoLista = document.createElement("li");
         elementoLista.role = "option";
-        elementoLista.textContent = invitado.nombre;
+
+        // Resaltar la parte del texto que coincide
+        const nombre = invitado.nombre;
+        const nombreNormalizado = normalizarTexto(nombre);
+        const consultaNormalizada = normalizarTexto(consulta);
+        const indiceCoincidencia = nombreNormalizado.indexOf(consultaNormalizada);
+
+        if (indiceCoincidencia !== -1 && consulta.length >= 2) {
+          const antes = nombre.substring(0, indiceCoincidencia);
+          const coincidencia = nombre.substring(indiceCoincidencia, indiceCoincidencia + consulta.length);
+          const despues = nombre.substring(indiceCoincidencia + consulta.length);
+
+          elementoLista.innerHTML = `
+            ${antes}<strong>${coincidencia}</strong>${despues}
+          `;
+        } else {
+          elementoLista.textContent = nombre;
+        }
+
+        // Marcar como seleccionado si es la mejor coincidencia
+        if (estado.seleccionado && estado.seleccionado.codigo === invitado.codigo) {
+          elementoLista.classList.add("seleccionado");
+          elementoLista.setAttribute("aria-selected", "true");
+        }
 
         elementoLista.onclick = () => {
           estado.seleccionado = invitado;
           elementos.input.value = invitado.nombre;
           mostrarInformacionInvitado(invitado);
           elementos.sugerencias.classList.remove("mostrar");
+          estado.inputValue = invitado.nombre; // Actualizar el valor conocido
         };
 
         elementos.sugerencias.appendChild(elementoLista);
@@ -285,7 +355,7 @@
       }
 
       // Múltiples coincidencias: mostrar sugerencias
-      renderizarSugerencias(coincidencias);
+      renderizarSugerencias(coincidencias, consulta, false);
     }
 
     /**
@@ -293,6 +363,11 @@
      */
     function manejarBusquedaEnTiempoReal() {
       const consulta = elementos.input.value.trim();
+
+      // Detectar si el usuario está borrando
+      estado.isDeleting = usuarioEstaBorrando(consulta);
+      estado.inputValue = consulta; // Actualizar el valor conocido
+
       estado.seleccionado = null;
 
       if (consulta.length < 2) {
@@ -310,7 +385,8 @@
         mostrarMensajeError("Invitado no encontrado");
       } else {
         mostrarInformacionInvitado(null);
-        renderizarSugerencias(coincidencias);
+        // Permitir autocompletar solo si no estamos borrando
+        renderizarSugerencias(coincidencias, consulta, !estado.isDeleting);
       }
     }
 
@@ -331,10 +407,23 @@
           evento.preventDefault();
           buscarYRedirigir();
         }
+
+        // Si presiona Escape, limpiar selección
+        if (evento.key === "Escape") {
+          elementos.sugerencias.classList.remove("mostrar");
+          estado.seleccionado = null;
+        }
       });
 
       // Búsqueda en tiempo real (solo sugerencias, sin redirección automática)
       elementos.input.addEventListener("input", manejarBusquedaEnTiempoReal);
+
+      // Cuando el input pierde el foco, ocultar sugerencias después de un breve delay
+      elementos.input.addEventListener("blur", () => {
+        setTimeout(() => {
+          elementos.sugerencias.classList.remove("mostrar");
+        }, 200);
+      });
 
       // Cerrar sugerencias al hacer clic fuera
       document.addEventListener("click", evento => {
@@ -352,6 +441,8 @@
      * Función principal de inicialización
      */
     function inicializar() {
+      // Inicializar el valor conocido del input
+      estado.inputValue = elementos.input.value;
       configurarEventos();
       cargarInvitados();
     }
@@ -361,4 +452,3 @@
   </script>
 </body>
 </html>
-
