@@ -28,22 +28,36 @@
       width: 100%;
       animation: fadeIn 0.35s ease;
     }
-    @keyframes fadeIn { from { opacity:0; transform:scale(.98)} to {opacity:1; transform:none} }
+    @keyframes fadeIn {
+      from { opacity:0; transform:scale(.98)}
+      to { opacity:1; transform:none}
+    }
     h2 { margin-top:0; font-size:1.5em; color:#cc2e72; }
     p { color:#5e3d4f; margin-bottom:8px; }
     .campo { position: relative; }
     input {
-      padding:12px; font-size:1em; width:100%; border-radius:10px; border:1px solid #ccc; margin-bottom:10px;
+      padding:12px; font-size:1em; width:100%; border-radius:10px;
+      border:1px solid #ccc; margin-bottom:10px;
     }
     input:focus { outline:3px solid rgba(204,46,114,0.18); }
-    ul { list-style:none; padding:0; margin:5px 0 0; max-height:180px; overflow-y:auto; border:1px solid #ccc; border-radius:10px; background: white; display:none; }
+    ul {
+      list-style:none; padding:0; margin:5px 0 0; max-height:180px;
+      overflow-y:auto; border:1px solid #ccc; border-radius:10px;
+      background: white; display:none;
+    }
     ul.mostrar { display:block; }
     li { padding:10px; cursor:pointer; transition:background-color .15s; }
     li:hover, li:focus { background-color: #f0cadd; outline:none; }
     li.seleccionado { background-color:#cc2e72; color:white; }
-    button { padding:12px 20px; background:#cc2e72; color:white; border:none; border-radius:10px; font-size:1em; cursor:pointer; margin-top:15px; width:100%; }
+    button {
+      padding:12px 20px; background:#cc2e72; color:white; border:none;
+      border-radius:10px; font-size:1em; cursor:pointer; margin-top:15px; width:100%;
+    }
     button[disabled] { opacity:.6; cursor:not-allowed; }
-    #infoSeleccion { text-align:left; font-size:0.95em; color:#5e3d4f; margin-top:8px; display:none; }
+    #infoSeleccion {
+      text-align:left; font-size:0.95em; color:#5e3d4f;
+      margin-top:8px; display:none;
+    }
     @media (max-width:480px) {
       body { padding:10px; align-items:flex-start; }
       .contenedor { padding:20px; margin-top:20px; }
@@ -66,137 +80,263 @@
   </div>
 
   <script>
-    // Tus datos originales (no se tocan)
-    const spreadsheetId = "1LKsB3nXQ8NqosmyuoiLTRxUrrQzsXAnf2hVlIxoiYQI";
-    const apiKey = "AIzaSyC916C1gjId46ClbCpxNaLRkPITQVKkF5E";
-    const backendConfirmURL = "https://alienxz77b.github.io/Invitacion/mapa.html";
+    // =============================================================================
+    // CONFIGURACIÓN - Datos de Google Sheets y URL de destino
+    // =============================================================================
+    const CONFIG = {
+      spreadsheetId: "1LKsB3nXQ8NqosmyuoiLTRxUrrQzsXAnf2hVlIxoiYQI",
+      apiKey: "AIzaSyC916C1gjId46ClbCpxNaLRkPITQVKkF5E",
+      backendConfirmURL: "https://alienxz77b.github.io/Invitacion/mapa.html"
+    };
 
-    let invitados = [];
-    let seleccionado = null;
-    let currentSuggestions = [];
+    // =============================================================================
+    // ESTADO GLOBAL DE LA APLICACIÓN
+    // =============================================================================
+    let estado = {
+      invitados: [],           // Lista completa de invitados
+      seleccionado: null,      // Invitado actualmente seleccionado
+      sugerencias: []          // Lista de sugerencias filtradas
+    };
 
-    const inputEl = document.getElementById("nombreInput");
-    const ulEl = document.getElementById("sugerencias");
-    const btnEl = document.getElementById("confirmarBtn");
-    const infoEl = document.getElementById("infoSeleccion");
+    // =============================================================================
+    // ELEMENTOS DEL DOM
+    // =============================================================================
+    const elementos = {
+      input: document.getElementById("nombreInput"),
+      sugerencias: document.getElementById("sugerencias"),
+      boton: document.getElementById("confirmarBtn"),
+      info: document.getElementById("infoSeleccion")
+    };
 
-    function normalizar(texto){
-      if(!texto) return "";
-      return texto.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+    // =============================================================================
+    // FUNCIONES UTILITARIAS
+    // =============================================================================
+
+    /**
+     * Normaliza texto para búsquedas sin acentos y en minúsculas
+     * @param {string} texto - Texto a normalizar
+     * @returns {string} Texto normalizado
+     */
+    function normalizarTexto(texto) {
+      if (!texto) return "";
+      return texto
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
     }
 
+    /**
+     * Valida si hay un invitado seleccionado válido
+     * @returns {boolean} True si hay un invitado válido seleccionado
+     */
+    function hayInvitadoValido() {
+      return estado.seleccionado && estado.seleccionado.codigo;
+    }
+
+    // =============================================================================
+    // FUNCIONES PRINCIPALES
+    // =============================================================================
+
+    /**
+     * Carga la lista de invitados desde Google Sheets
+     */
     async function cargarInvitados() {
-      const range = "Invitados!A2:G";
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`;
+      const rango = "Invitados!A2:G";
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.spreadsheetId}/values/${rango}?key=${CONFIG.apiKey}`;
+
       try {
-        const res = await fetch(url);
-        if(!res.ok) throw new Error("Error HTTP "+res.status);
-        const data = await res.json();
-        if (data.values) {
-          invitados = data.values.map(row => ({
-            codigo: row[0],
-            nombre: row[1],
-            adultos: row[2],
-            ninos: row[3],
-            mesa: row[5],
-            confirmado: row[6]
+        const respuesta = await fetch(url);
+        if (!respuesta.ok) throw new Error(`Error HTTP: ${respuesta.status}`);
+
+        const datos = await respuesta.json();
+
+        if (datos.values) {
+          // Mapear datos de la hoja de cálculo a objetos invitado
+          estado.invitados = datos.values.map(fila => ({
+            codigo: fila[0] || "",
+            nombre: fila[1] || "",
+            adultos: fila[2] || "0",
+            ninos: fila[3] || "0",
+            mesa: fila[5] || "Por asignar",
+            confirmado: fila[6] || "No"
           }));
-          btnEl.disabled = false;
-          btnEl.textContent = "Buscar mesa";
 
-          // Agregar evento de input para búsqueda en tiempo real
-          inputEl.addEventListener("input", function(e) {
-            const query = e.target.value.trim();
-            if (query.length < 2) {
-              ulEl.classList.remove("mostrar");
-              seleccionado = null;
-              mostrarInfo(null);
-              return;
-            }
+          // Habilitar interfaz
+          elementos.boton.disabled = false;
+          elementos.boton.textContent = "Buscar mesa";
 
-            const matches = invitados.filter(i => normalizar(i.nombre).includes(normalizar(query)));
-
-            // MODIFICACIÓN: Si hay una sola coincidencia, redirigir automáticamente
-            if (matches.length === 1) {
-              seleccionado = matches[0];
-              window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(seleccionado.codigo)}`;
-              return;
-            }
-
-            renderSuggestions(matches);
-          });
-
+          console.log(`✅ ${estado.invitados.length} invitados cargados`);
         } else {
-          alert("No se pudo cargar la lista.");
+          throw new Error("No se encontraron datos en la hoja de cálculo");
         }
-      } catch (e) {
-        alert("Error al cargar invitados.");
-        console.error(e);
+      } catch (error) {
+        console.error("❌ Error al cargar invitados:", error);
+        elementos.boton.textContent = "Error al cargar";
+        alert("No se pudo cargar la lista de invitados. Intenta más tarde.");
       }
     }
 
-    function mostrarInfo(inv){
-      if(!inv){ infoEl.style.display="none"; infoEl.textContent=""; return; }
-      infoEl.style.display="block";
-      infoEl.innerHTML = `<strong>${inv.nombre}</strong><br>Mesa: ${inv.mesa||"-"} • Adultos: ${inv.adultos||"-"} • Niños: ${inv.ninos||"-"}`;
-    }
-
-    function renderSuggestions(lista){
-      ulEl.innerHTML = "";
-      currentSuggestions = lista;
-      if(lista.length===0){ ulEl.classList.remove("mostrar"); return; }
-
-      // MODIFICACIÓN: Si hay una sola coincidencia, redirigir automáticamente
-      if(lista.length===1){
-        seleccionado = lista[0];
-        window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(seleccionado.codigo)}`;
+    /**
+     * Muestra información del invitado seleccionado
+     * @param {Object} invitado - Objeto invitado o null para ocultar
+     */
+    function mostrarInformacionInvitado(invitado) {
+      if (!invitado) {
+        elementos.info.style.display = "none";
+        elementos.info.textContent = "";
         return;
       }
 
-      lista.forEach((inv, idx)=>{
-        const li=document.createElement("li");
-        li.role="option";
-        li.textContent=inv.nombre;
-        li.onclick=()=>{
-          seleccionado=inv;
-          inputEl.value=inv.nombre;
-          mostrarInfo(inv);
-          ulEl.classList.remove("mostrar");
-          window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(seleccionado.codigo)}`;
+      elementos.info.style.display = "block";
+      elementos.info.innerHTML = `
+        <strong>${invitado.nombre}</strong><br>
+        Mesa: ${invitado.mesa} • Adultos: ${invitado.adultos} • Niños: ${invitado.ninos}
+      `;
+    }
+
+    /**
+     * Renderiza la lista de sugerencias basada en la búsqueda
+     * @param {Array} listaSugerencias - Lista de invitados que coinciden
+     */
+    function renderizarSugerencias(listaSugerencias) {
+      elementos.sugerencias.innerHTML = "";
+      estado.sugerencias = listaSugerencias;
+
+      if (listaSugerencias.length === 0) {
+        elementos.sugerencias.classList.remove("mostrar");
+        return;
+      }
+
+      // Si hay una sola coincidencia, seleccionarla automáticamente
+      if (listaSugerencias.length === 1) {
+        estado.seleccionado = listaSugerencias[0];
+        elementos.input.value = estado.seleccionado.nombre;
+        mostrarInformacionInvitado(estado.seleccionado);
+        elementos.sugerencias.classList.remove("mostrar");
+        return;
+      }
+
+      // Crear elementos de lista para múltiples coincidencias
+      listaSugerencias.forEach(invitado => {
+        const elementoLista = document.createElement("li");
+        elementoLista.role = "option";
+        elementoLista.textContent = invitado.nombre;
+
+        elementoLista.onclick = () => {
+          estado.seleccionado = invitado;
+          elementos.input.value = invitado.nombre;
+          mostrarInformacionInvitado(invitado);
+          elementos.sugerencias.classList.remove("mostrar");
         };
-        ulEl.appendChild(li);
+
+        elementos.sugerencias.appendChild(elementoLista);
       });
-      ulEl.classList.add("mostrar");
+
+      elementos.sugerencias.classList.add("mostrar");
     }
 
-    function confirmarAsistencia(){
-      if(seleccionado){
-        window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(seleccionado.codigo)}`;
-        return;
-      }
-      const q=inputEl.value.trim();
-      if(!q){ alert("Escribe un nombre para buscar."); return; }
-      const matches = invitados.filter(i=>normalizar(i.nombre).includes(normalizar(q)));
-      if(matches.length===0){ alert("No se encontró ningún invitado con ese nombre."); return; }
-
-      // MODIFICACIÓN: Si hay una sola coincidencia, redirigir automáticamente
-      if(matches.length===1){
-        seleccionado = matches[0];
-        window.location.href = `${backendConfirmURL}?codigo=${encodeURIComponent(seleccionado.codigo)}`;
+    /**
+     * Realiza la búsqueda de invitados y maneja la redirección
+     */
+    function buscarYRedirigir() {
+      // Caso 1: Ya hay un invitado seleccionado (de sugerencias o búsqueda previa)
+      if (hayInvitadoValido()) {
+        window.location.href = `${CONFIG.backendConfirmURL}?codigo=${encodeURIComponent(estado.seleccionado.codigo)}`;
         return;
       }
 
-      renderSuggestions(matches);
+      // Caso 2: Buscar por texto ingresado
+      const consulta = elementos.input.value.trim();
+
+      if (!consulta) {
+        alert("Por favor, escribe tu nombre para buscar tu mesa.");
+        return;
+      }
+
+      const coincidencias = estado.invitados.filter(invitado =>
+        normalizarTexto(invitado.nombre).includes(normalizarTexto(consulta))
+      );
+
+      if (coincidencias.length === 0) {
+        alert("No se encontró ningún invitado con ese nombre. Verifica la ortografía.");
+        return;
+      }
+
+      // Si hay una sola coincidencia, redirigir directamente
+      if (coincidencias.length === 1) {
+        estado.seleccionado = coincidencias[0];
+        window.location.href = `${CONFIG.backendConfirmURL}?codigo=${encodeURIComponent(estado.seleccionado.codigo)}`;
+        return;
+      }
+
+      // Múltiples coincidencias: mostrar sugerencias
+      renderizarSugerencias(coincidencias);
     }
 
-    // Eventos
-    btnEl.addEventListener("click", confirmarAsistencia);
-    inputEl.addEventListener("keydown", e=>{
-      if(e.key==="Enter"){ e.preventDefault(); confirmarAsistencia(); }
-    });
+    /**
+     * Maneja la búsqueda en tiempo real mientras se escribe
+     */
+    function manejarBusquedaEnTiempoReal() {
+      const consulta = elementos.input.value.trim();
+      estado.seleccionado = null;
+      mostrarInformacionInvitado(null);
 
-    // Cargar lista
-    window.onload = cargarInvitados;
+      if (consulta.length < 2) {
+        elementos.sugerencias.classList.remove("mostrar");
+        return;
+      }
+
+      const coincidencias = estado.invitados.filter(invitado =>
+        normalizarTexto(invitado.nombre).includes(normalizarTexto(consulta))
+      );
+
+      renderizarSugerencias(coincidencias);
+    }
+
+    // =============================================================================
+    // CONFIGURACIÓN DE EVENTOS
+    // =============================================================================
+
+    /**
+     * Configura todos los event listeners
+     */
+    function configurarEventos() {
+      // Evento del botón principal
+      elementos.boton.addEventListener("click", buscarYRedirigir);
+
+      // Evento de tecla Enter en el input
+      elementos.input.addEventListener("keydown", evento => {
+        if (evento.key === "Enter") {
+          evento.preventDefault();
+          buscarYRedirigir();
+        }
+      });
+
+      // Búsqueda en tiempo real (solo sugerencias, sin redirección automática)
+      elementos.input.addEventListener("input", manejarBusquedaEnTiempoReal);
+
+      // Cerrar sugerencias al hacer clic fuera
+      document.addEventListener("click", evento => {
+        if (!elementos.input.contains(evento.target) && !elementos.sugerencias.contains(evento.target)) {
+          elementos.sugerencias.classList.remove("mostrar");
+        }
+      });
+    }
+
+    // =============================================================================
+    // INICIALIZACIÓN
+    // =============================================================================
+
+    /**
+     * Función principal de inicialización
+     */
+    function inicializar() {
+      configurarEventos();
+      cargarInvitados();
+    }
+
+    // Iniciar la aplicación cuando la página cargue
+    window.addEventListener("load", inicializar);
   </script>
 </body>
 </html>
